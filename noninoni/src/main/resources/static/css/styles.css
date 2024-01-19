@@ -1,0 +1,117 @@
+/* styles.css */
+
+@charset "EUC-KR";
+
+* {
+
+	font-family: 'Roboto', 'nanum gothic', '맑은고딕', 'Malgun Gothic', '돋움', Dotum, Helvetica, Arial, AppleGothic, sans-serif;
+	font-weight: bold;
+	align-items: center;
+	border: 0;
+	-webkit-tap-highlight-color: transparent;
+
+
+}
+
+input:focus {
+	outline: none;
+}
+
+
+html {
+	min-width: 360px;
+	max-width: 1020px;
+	margin: 0px auto;
+
+}
+
+body {
+	width: 100%;
+	max-width: 1020px;
+	box-shadow: 0 0 8px rgb(0 0 0 / 10%);
+	text-align: center;
+	background-color: #ffffff;
+	min-height: max-content;
+	position: absolute;
+	border: 1px solid silver;
+touch-action: pan-x pan-y;
+}
+
+i {
+	font-size: 30px;
+
+}
+
+button {
+	font-size: 10px;
+	border-top: 1px solid silver;
+	width: 100%;
+	background-color: black;
+	color: white;
+	font-size: 19px;
+}
+
+input {
+	float: left;
+	width: 100%;
+	font-size: 15px;
+	border-top: 1px solid silver;
+}
+
+textarea {
+	width: 100%;
+
+	border-top: 1px solid silver;
+}
+
+select {
+	float: left;
+	width: 100%;
+	font-size: 15px;
+	border-top: 1px solid silver;
+
+}
+
+table {
+	width: 100%;
+	font-size: 12px;
+
+	border-top: 1px solid silver;
+}
+
+label {
+	align-items: center;
+	width: 100%;
+	display: flex;
+	float: left;
+	font-size: 13px;
+
+	border-top: 1px solid silver;
+}
+
+h1,
+h2,
+h3,
+ul {
+
+	border-top: 1px solid silver;
+}
+
+ul {
+	list-style-type: none;
+	/* 리스트 항목 앞의 점을 제거 */
+	padding: 0;
+	/* 필요한 경우 패딩도 제거 */
+}
+
+li {
+	display: inline;
+	/* 리스트 항목을 가로로 나열 */
+	/* 각 항목 사이에 간격 추가 */
+}
+
+img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
