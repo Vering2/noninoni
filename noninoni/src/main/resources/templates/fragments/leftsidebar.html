@@ -1,0 +1,276 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="EUC-KR">
+	<title>Insert title here</title>
+
+
+	<style>
+		a {
+			text-decoration: none;
+			color: black;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+		}
+
+		input[id="hamburger"] {
+			display: none;
+		}
+
+		input[id="hamburger"]+label {
+			display: block;
+			width: 30px;
+			height: 30px;
+			position: relative;
+			cursor: pointer;
+		}
+
+		input[id="hamburger"]+label span {
+			display: block;
+			position: absolute;
+			width: 100%;
+			height: 5px;
+			border-radius: 30px;
+			background: #000;
+			transition: all 0.35s;
+		}
+
+		input[id="hamburger"]+label span:nth-child(1) {
+			top: 0;
+		}
+
+		input[id="hamburger"]+label span:nth-child(2) {
+			top: 50%;
+			transform: translateY(-50%);
+		}
+
+		input[id="hamburger"]+label span:nth-child(3) {
+			bottom: 0;
+		}
+
+		input[id="hamburger"]:checked+label {
+			z-index: 20000;
+		}
+
+		input[id="hamburger"]:checked+label span {
+			background: black;
+		}
+
+		input[id="hamburger"]:checked+label span:nth-child(1) {
+			top: 50%;
+			transform: translateY(-50%) rotate(45deg);
+		}
+
+		input[id="hamburger"]:checked+label span:nth-child(2) {
+			opacity: 0;
+		}
+
+		input[id="hamburger"]:checked+label span:nth-child(3) {
+			bottom: 50%;
+			transform: translateY(50%) rotate(-45deg);
+		}
+
+		div[class="sidebar"] {
+			width: 100%;
+			background: white;
+			position: fixed;
+			left: -100%;
+			z-index: 19999;
+			transition: all 0.35s;
+			height: 100%;
+			overflow-y: auto;
+		}
+
+		input[id="hamburger"]:checked+label+div {
+			left: 0;
+		}
+
+		.nav_mobile {
+			position: absolute;
+			top: 220px;
+			width: 100%;
+			padding-top: 20px;
+		}
+
+
+		.sidebar .nav_mobile li {
+			color: black;
+			position: relative;
+			float: left;
+			width: 100%;
+			height: 100%;
+			list-style-type: none;
+			font-size: 20px;
+			border-bottom: 1px solid #ccc;
+			font-family: 'Noto Sans KR';
+			font-weight: bold;
+			text-align: center;
+			padding-bottom: 20px;
+		}
+
+		.sidebar a {
+			padding: 0;
+			text-decoration: none;
+			display: block;
+		}
+
+		.sidebar li a {
+			display: block;
+			font-weight: bold;
+			line-height: 40px;
+			margin: 0px;
+			padding: 0;
+			text-align: center;
+			text-decoration: none;
+			transition: all 0.4s;
+			font-size: 30px;
+		}
+
+		.sidebar li a:hover,
+		.sidebar ul a:hover {
+			text-decoration: none;
+			color: #eee;
+			padding: 0;
+			margin: 0;
+			border: 0px;
+		}
+	</style>
+	<style>
+		/* 선택한 리스트의 배경색 지정 */
+		.selected {
+			background-color: silver;
+			/* 원하는 배경색 지정 */
+		}
+	</style>
+</head>
+
+<body>
+
+	<input type="checkbox" id="hamburger" />
+	<label for="hamburger" style="border: 0;">
+		<span></span>
+		<span></span>
+		<span></span>
+	</label>
+	<div class="sidebar" style="top: 0;">
+
+
+		<div th:if="${#authentication.name == 'anonymousUser'}">
+			<div style="height: 70px;
+    justify-content: center;
+    display: flex;
+    align-items: end;">
+				<h3 style="border: 0;">로그인 해주세요</h3>
+			</div>
+			<ul>
+				<li><a th:href="@{/login}">로그인</a></li>
+				<li><a href="/join">회원가입</a></li>
+			</ul>
+		</div>
+
+
+
+
+		<div th:unless="${#authentication.name == 'anonymousUser'}">
+			<div style="height: 70px;
+    justify-content: center;
+    display: flex;
+    align-items: end;">
+				<h3 th:text="${userName}+님" style="border: 0;">User Name</h3>
+			</div>
+			<ul>
+				<li><a th:href="@{/logout}">로그아웃</a></li>
+				<li><a th:href="@{/orders}">주문조회</a> </li>
+				<li><a th:href="@{/favorites}">관심상품 <span id="favorite-count"></span></a></li>
+
+				<div th:if="${#lists.contains(userRole, '[ROLE_ADMIN]')}">
+
+
+
+					<ul>
+
+						<li><a th:href="@{/admin/orders}"><span class="catename">주문
+									관리</span></a></li>
+						<li><a th:href="@{/admin/members}"><span class="catename">회원
+									관리</span></a></li>
+
+						<li><a th:href="@{/admin/product/register}"><span class="catename">상품
+									등록</span></a></li>
+						<li><a th:href="@{/admin/product/list}"><span class="catename">상품
+									관리</span></a></li>
+						<li><a th:href="@{/admin/management}"><span class="catename">색상 사이즈 배송비
+									관리</span></a></li>
+						<li><a th:href="@{/admin/category}"><span class="catename">카테고리
+									관리</span></a></li>
+						<li><a th:href="@{/admin/mainCategory}"><span class="catename">메인 카테고리
+									관리</span></a></li>
+
+
+					</ul>
+				</div>
+		</div>
+		<div>
+			<ul>
+				<li><a th:href="@{/recent-products}"><span>최근본상품 </span><span id="recent-products-count"></span></a>
+				</li>
+				<li><a th:href="@{/reviews}"><span>리뷰목록</span></a></li>
+				<li><a th:href="@{/notices}"><span>공지사항</span></a></li>
+
+			</ul>
+			<ul>
+				© ALL RIGHT RESERVED.
+			</ul>
+		</div>
+
+	</div>
+
+	<!-- 스크립트 추가 -->
+	<script>
+		$(document).ready(function () {
+			$.get("/api/recent-products/count", function (data) {
+				if (data > 0) {
+					$("#recent-products-count").text(data);
+				} else {
+					$("#recent-products-count").hide();
+				}
+			});
+
+			$.get("/api/favorites/count", function (data) {
+				if (data > 0) {
+					$("#favorite-count").text(data);
+				} else {
+					$("#favorite-count").hide();
+				}
+			});
+		});
+	</script>
+
+	<script>
+		$(document).ready(function () {
+			// 초기에 모든 하위 목록 숨기기
+			$('.-subcover1').hide();
+
+			// 클릭 이벤트 처리
+			$('.aw').click(function (event) {
+				<!-- event.preventDefault(); // 기본 클릭 동작 막기-->
+
+				// 클릭한 요소의 부모에서 하위 목록 토글
+				$(this).closest('li').find('.-subcover1').toggle();
+
+				// 선택한 리스트의 배경색 변경
+				$(this).closest('li').toggleClass('selected');
+			});
+		});
+	</script>
+
+
+
+
+
+</body>
+
+</html>

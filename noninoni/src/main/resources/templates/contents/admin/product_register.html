@@ -1,0 +1,206 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+</head>
+
+<body>
+	<div>
+		<!-- header를 포함하는 부분 -->
+		<th:block th:replace="~{fragments/header}"></th:block>
+		<h2>상품 등록</h2>
+		<form th:action="@{/admin/product/register}" th:object="${product}" method="post" enctype="multipart/form-data"
+			onsubmit="return validateAndSubmitForm(this)">
+			<!-- Name -->
+			<label for="name">제품명</label>
+			<input type="text" id="name" th:field="*{name}" />
+
+			<!-- Price -->
+			<label for="price">가격</label>
+			<input type="text" id="price" th:field="*{price}" />
+
+			<!-- Description -->
+			<label for="description">설명</label>
+			<textarea id="description" th:field="*{description}"></textarea>
+
+			<!-- Category -->
+			<label for="category">카테고리</label>
+			<select id="category" name="category">
+				<option value="" selected="selected">- 카테고리 선택 -</option>
+				<option th:each="category : ${categories}" th:value="${category.type}" th:text="${category.type}">
+					Category Name
+				</option>
+			</select>
+
+			<!-- MainCategory -->
+			<label for="mainCategory">메인 카테고리</label>
+			<select id="mainCategory" name="mainCategory">
+				<option value="" selected="selected">- 메인 카테고리 선택 -</option>
+				<option th:each="mainCategory : ${mainCategories}" th:value="${mainCategory.type}"
+					th:text="${mainCategory.type}">
+					MainCategory Name
+				</option>
+			</select>
+
+			<!-- Variants Section -->
+			<div id="variants">
+				<label>상품 옵션</label>
+				<!-- Variants Container -->
+			</div>
+			<button type="button" onclick="addVariant()"
+				style="width: 100%; background-color: black; color: white; font-size: 19px;">
+				상품 옵션 추가하기
+			</button>
+
+			<!-- Main Image File Upload -->
+			<label>메인 이미지</label>
+			<div id="mainImages">
+			</div>
+			<button type="button" onclick="addInputFile('mainImages')"
+				style="width: 100%; background-color: black; color: white; font-size: 19px;">사진 추가하기</button>
+
+			<!-- Sub Images File Upload -->
+			<label>상세 이미지</label>
+			<div id="subImages">
+			</div>
+			<button type="button" onclick="addInputFile('subImages')"
+				style="width: 100%; background-color: black; color: white; font-size: 19px;">사진 추가하기</button>
+			<!-- Status -->
+			<label for="status">상태</label>
+			<select id="status" th:field="*{status}">
+				<option value="AVAILABLE">판매 가능</option>
+				<option value="OUT_OF_STOCK">재고 부족</option>
+				<option value="DISCONTINUED">판매 중단</option>
+			</select>
+
+			<input type="submit" style="background-color: black; color: white; font-size: 19px;" value="등록" />
+
+
+		</form>
+
+	</div>
+
+	<div id="colorData" th:data-colors="${colorsJson}" style="display:none;"></div>
+	<div id="sizeData" th:data-sizes="${sizesJson}" style="display:none;"></div>
+	<button id="goToProductsButton">상품 목록</button>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+	<script>
+		document.getElementById('goToProductsButton').addEventListener('click', function () {
+			window.location.href = '/admin/product/list';
+		});
+	</script>
+
+
+	<script>
+		var colorsData = JSON.parse(document.getElementById('colorData').getAttribute('data-colors'));
+		var sizesData = JSON.parse(document.getElementById('sizeData').getAttribute('data-sizes'));
+		function addVariant() {
+			var variantsContainer = document.getElementById('variants');
+
+			// 새로운 variant div 생성
+			var variantDiv = document.createElement("div");
+			variantDiv.className = "variant";
+
+			// 색상 선택
+			var colorSelect = document.createElement("select");
+			colorSelect.name = "colors[]";
+			colorSelect.appendChild(createOption('', '- 색상 선택 -'));
+			colorsData.forEach(function (color) {
+				colorSelect.appendChild(createOption(color.id, color.name));
+			});
+
+			// 사이즈 선택
+			var sizeSelect = document.createElement("select");
+			sizeSelect.name = "sizes[]";
+			sizeSelect.appendChild(createOption('', '- 사이즈 선택 -'));
+			sizesData.forEach(function (size) {
+				sizeSelect.appendChild(createOption(size.id, size.name));
+			});
+
+			// 추가 금액 입력
+			var additionalPriceInput = document.createElement("input");
+			additionalPriceInput.type = "number";
+			additionalPriceInput.name = "additionalPrices[]";
+			additionalPriceInput.placeholder = "추가 금액 (예: 500 또는 -1000)";
+
+			// 수량 입력
+			var quantityInput = document.createElement("input");
+			quantityInput.type = "number";
+			quantityInput.name = "quantities[]";
+			quantityInput.placeholder = "수량";
+
+			// 요소들을 variantDiv에 추가
+			variantDiv.appendChild(colorSelect);
+			variantDiv.appendChild(sizeSelect);
+			variantDiv.appendChild(additionalPriceInput);
+			variantDiv.appendChild(quantityInput);
+
+			// variantDiv를 variantsContainer에 추가
+			variantsContainer.appendChild(variantDiv);
+		}
+
+		function createOption(value, text) {
+			var option = document.createElement("option");
+			option.value = value;
+			option.textContent = text;
+			return option;
+		}
+	</script>
+
+
+
+	<script type="text/javascript">
+		function addInputFile(containerId) {
+			var container = document.getElementById(containerId);
+			var input = document.createElement("input");
+			input.type = "file";
+			input.name = containerId + "[]";
+			input.accept = "image/*"; // 이미지만 허용
+			container.appendChild(input);
+		}
+
+		function validateAndSubmitForm(form) {
+			// 모든 파일 입력 필드를 순회
+			var fileInputs = form.querySelectorAll('input[type="file"]');
+			fileInputs.forEach(function (input) {
+				// 파일이 선택되지 않은 경우, 해당 필드 제거
+				if (input.files.length === 0) {
+					input.parentNode.removeChild(input);
+				}
+			});
+			var price = form["price"].value;
+			if (isNaN(price) || price.trim() === "") {
+				alert("가격은 숫자여야 합니다.");
+				return false;
+			}
+			var variants = document.querySelectorAll('.variant');
+			for (var i = 0; i < variants.length; i++) {
+				var color = variants[i].querySelector('select[name="colors[]"]').value;
+				var size = variants[i].querySelector('select[name="sizes[]"]').value;
+				var quantity = variants[i].querySelector('input[name="quantities[]"]').value;
+
+				// 추가금액 입력 필드 값이 비어있을 경우 0으로 초기화
+				var additionalPriceInput = variants[i].querySelector('input[name="additionalPrices[]"]');
+				if (!additionalPriceInput.value.trim()) {
+					additionalPriceInput.value = 0;
+				}
+
+
+				if (!color || !size || !quantity) {
+					alert('모든 상품 옵션 필드를 채워주세요.');
+					return false;
+				}
+			}
+			return true; // 폼 제출 계속 진행
+		}
+	</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,1105 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<style>
+		.swiper-container-main {
+			overflow: hidden;
+		}
+
+		.square-container-main {
+			width: 100%;
+			/* 가로 길이를 50%로 설정 */
+			height: 0;
+			/* 초기 높이는 0으로 설정 */
+			padding-top: 100%;
+			/* 가로 길이에 대한 세로 길이를 50%로 설정하여 정사각형 유지 */
+			position: relative;
+			/* 상대적 위치 지정 */
+		}
+
+		.content-main {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			/* 컨텐츠 내용 스타일링 */
+		}
+	</style>
+	<style>
+		.swiper-container {
+			overflow: hidden;
+		}
+
+
+		.content {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100px;
+			height: 100px;
+			/* 컨텐츠 내용 스타일링 */
+		}
+
+		/* Swiper 컨테이너의 크기 조정 */
+		.swiper-container {
+			width: 100px;
+			/* 너비를 100%로 설정 */
+			height: 100px;
+			/* 높이를 300px로 설정 */
+		}
+
+		/* 각 슬라이드 항목의 크기 조정 */
+		.swiper-slide {
+			text-align: center;
+			font-size: 18px;
+			background: #fff;
+
+			/* 슬라이드 항목 내부의 정사각형 컨테이너 크기 조정 */
+			.square-container {
+				width: 100%;
+				/* 너비를 100%로 설정 */
+				height: 100%;
+				/* 높이를 100%로 설정 */
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			/* 이미지 스타일 */
+			img {
+				max-width: 100%;
+				height: auto;
+				border-radius: 10px;
+				/* 이미지의 모서리를 둥글게 */
+			}
+		}
+
+		.fa-star:before {
+			content: "\f005";
+			font-size: 12px;
+			display: flex;
+		}
+	</style>
+	<style>
+		.review p {
+			text-align: left;
+			float: inline-start;
+			overflow: hidden;
+			width: calc(100% - 50px);
+		}
+
+		/* Swiper 페이징네이션 색상 변경 */
+		.swiper-pagination-clickable .swiper-pagination-bullet {
+			background-color: white;
+			/* 예시 색상: 파란색 */
+		}
+
+		/* Swiper 이전 버튼 색상 변경 */
+		.swiper-button-prev::after {
+			color: white;
+			/* 예시 색상: 파란색 */
+		}
+
+		/* Swiper 다음 버튼 색상 변경 */
+		.swiper-button-next::after {
+			color: white;
+			/* 예시 색상: 파란색 */
+		}
+
+		.pagination button {
+			width: 30px;
+			/* 버튼의 가로 크기 설정 */
+			/* 추가적인 스타일링 (예: 정렬, 배경색, 테두리 등) */
+		}
+
+		.pagination ul {
+			list-style-type: none;
+			/* 리스트 항목 앞의 점을 제거 */
+			padding: 0;
+			/* 필요한 경우 패딩도 제거 */
+		}
+
+		.pagination li {
+			display: inline;
+			/* 리스트 항목을 가로로 나열 */
+			margin-right: 5px;
+			/* 각 항목 사이에 간격 추가 */
+		}
+
+		.pagination .active {
+			background-color: silver;
+			/* 배경색 */
+			color: white;
+			/* 텍스트 색상 */
+		}
+
+
+		/* 기타 스타일링 */
+	</style>
+	<style>
+		.modal {
+			display: none;
+			/* Hidden by default */
+			position: fixed;
+			/* Stay in place */
+			z-index: 1000;
+			/* Sit on top */
+			padding-top: 50px;
+			padding-bottom: 100%;
+			/* Location of the box */
+			margin: 0px auto;
+			min-width: 320px;
+			max-width: 1020px;
+			top: 0;
+			width: 100%;
+			/* Full width */
+			height: calc(100% - 100px);
+			/* Full height */
+			overflow: auto;
+			background-color: rgba(0, 0, 0, 0.9);
+			/* Black w/ opacity */
+		}
+
+		.close {
+			position: absolute;
+			top: 0px;
+			right: 35px;
+			color: #f1f1f1;
+			font-size: 40px;
+			font-weight: bold;
+			cursor: pointer;
+		}
+	</style>
+</head>
+
+<body>
+	<div>
+		<!--header를 포함하는 부분-->
+		<th:block th:replace="~{fragments/header}"></th:block>
+		<button th:if="${userRole != null and #lists.contains(userRole, '[ROLE_ADMIN]')}" style="width: 100%;"
+			th:onclick="'window.location.href=\'/admin/product/edit/' + ${product.id} + '\''">상품수정</button>
+
+
+		<!-- ... 제품 정보 ... -->
+		<div class="swiper-container-main" th:id="'swiper-'">
+			<div class="swiper-wrapper">
+				<!-- 슬라이드 항목 -->
+				<div th:each="url : ${#strings.arraySplit(product.mainimageUrl, ',')}" class="swiper-slide">
+					<div class="square-container-main">
+						<div class="content-main">
+							<picture>
+								<img th:src="@{/uploaded_files/product/{url}(url=${url})}" alt="Slide Image"
+									style="width:100%; height:100%;" decoding="async" loading="lazy">
+							</picture>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="color displaynone">
+		</div>
+		<div class="detailName">
+			<h2>[[${product.name}]]</h2>
+		</div>
+
+		<div class="detailPriceInfo">
+
+			<div>
+				<strong>[[${#numbers.formatInteger(product.price, 0,
+					'COMMA')}]]원</strong>
+			</div>
+		</div>
+
+
+		<table border="0">
+
+			<colgroup>
+				<col style="width:100px;">
+				<col style="width:auto;">
+			</colgroup>
+
+			<tbody class="delvtype">
+
+				<tr>
+					<th scope="row">배송비</th>
+					<td><span style="font-size:12px;color:#555555; float: inline-start;"><strong>[[${#numbers.formatInteger(deliveryFee.fee,
+								0,
+								'COMMA')}]]원</strong> ([[${#numbers.formatInteger(deliveryFee.minimum, 0,
+							'COMMA')}]]원 이상 구매 시 무료)</span>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="infoArea">
+			<table border="1">
+				<colgroup>
+					<col style="width:100px;">
+					<col style="width:auto;">
+				</colgroup>
+
+
+				<tbody>
+					<tr>
+						<th scope="row">색상</th>
+						<td class="middle">
+							<select id="colorSelect">
+							</select>
+							<p class="value"></p>
+						</td>
+					</tr>
+					<!-- 사이즈 선택 드롭다운 -->
+					<tr>
+						<th scope="row">사이즈</th>
+						<td class="middle">
+							<select id="sizeSelect">
+								<!-- AJAX를 통해 동적으로 사이즈 옵션을 채울 것임 -->
+							</select>
+							<!--<p id="additionalPriceDisplay" class="value"></p>--> <!-- 추가 금액 표시 -->
+						</td>
+					</tr>
+
+					<tr class="quantity">
+						<th scope="row">수량</th>
+						<td>
+							<div class="ec-base-qty">
+								<input id="quantity" name="quantity_name" value="1" type="number" min="1">
+							</div>
+						</td>
+					</tr>
+
+				</tbody>
+			</table>
+			<!-- 옵션 추가 -->
+			<table>
+				<td>
+					<button type="button" class="btnStrong" onclick="addSelectedOptionsToCart()"><i
+							class="fa-solid fa-cart-arrow-down" style="font-size: 24px;"></i></button>
+				</td>
+			</table>
+			<div id="totalProducts" class="">
+				<table border="1" summary="">
+					<colgroup>
+						<col style="width:auto;">
+						<col style="width:40px;">
+						<col style="width:80px;">
+						<col style="width:40px;">
+					</colgroup>
+					<thead>
+						<tr>
+							<th>상품 정보</th>
+							<th>수량</th>
+							<th>가격</th>
+							<th>삭제</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+
+				</table>
+			</div>
+			<div id="totalPrice" class="totalPrice">
+				<strong>총 상품금액</strong><span class="total"><strong class="price">0</strong></span>
+			</div>
+			<div>
+
+				<table>
+					<col>
+					<col>
+					<col>
+					<col>
+					<td>
+						<!-- 장바구니 버튼 -->
+						<button type="button" id="add-to-cart-button"><i class="fa-solid fa-cart-plus"
+								style="font-size: 24px;"></i></button>
+					</td>
+					<td th:if="${isLoggedIn}">
+						<!-- 구매하기 버튼 -->
+						<button type="button" onclick="purchaseProduct()"><i class="fa-solid fa-credit-card"
+								style="font-size: 24px;"></i></button>
+					</td>
+					<td>
+
+						<button type="button" id="share-button"><i class="fa-solid fa-share-from-square"
+								style="font-size: 24px;"></i></button>
+					</td>
+					<td th:if="${isLoggedIn}">
+
+						<!-- 로그인 했을 때만 보이는 부분 -->
+						<button th:id="${'addFavorite-' + product.id}" class="addFavorite"
+							th:style="${isFavorite ? 'display: none;' : 'display: block;'}">
+							<i class="fa-regular fa-heart" style="font-size: 24px;"></i>
+						</button>
+
+						<button th:id="${'removeFavorite-' + product.id}" class="removeFavorite"
+							th:style="${isFavorite ? 'display: block;' : 'display: none;'}">
+							<i class="fa-solid fa-heart" style="font-size: 24px;"></i>
+						</button>
+
+					</td>
+				</table>
+
+
+			</div>
+		</div>
+
+		<!-- Sub Images -->
+		<div id="subImages">
+			<!-- 기존 이미지 표시 -->
+			<div style="display: flex; flex-wrap: wrap; width: 100%;">
+				<div style="width: 100%;" th:each="url, iterStat : ${#strings.arraySplit(product.subimageUrl, ',')}"
+					th:id="'image-container-' + ${iterStat.index}" class="swiper-slide">
+					<picture>
+						<img th:src="@{/uploaded_files/product/{url}(url=${url})}" alt="Sub Image"
+							style="width:100%; height:100%;" decoding="async" loading="lazy">
+					</picture>
+				</div>
+			</div>
+		</div>
+
+
+
+	</div>
+	<h3>[[${product.name}]] 리뷰</h3>
+
+	<div id="cart-info" th:data-cart-id="${cartId}"></div>
+	<div id="product-info" th:data-product-id="${product.id}"></div>
+	<div>
+		<div id="reviews-container"></div>
+	</div>
+	<div>
+		<div class="pagination">
+			<ul>
+			</ul>
+		</div>
+	</div>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+
+	<script>
+		document.getElementById('share-button').addEventListener('click', function () {
+			if (navigator.share) {
+				navigator.share({
+					title: '노니노니 아기옷 감성공간',
+					url: window.location.href
+				}).then(() => {
+					console.log('Thanks for sharing!');
+				})
+					.catch(console.error);
+			} else {
+				// Web Share API를 지원하지 않는 경우
+				alert('브라우저가 공유 기능을 지원하지 않습니다. URL을 복사하여 공유해주세요.');
+			}
+		});
+	</script>
+
+	<script>
+		document.getElementById('add-to-cart-button').addEventListener('click', function () {
+			if (Object.keys(selectedOptions).length === 0) {
+				alert('옵션을 선택해 주세요.');
+				return;
+			}
+			var productId = document.getElementById('product-info').getAttribute('data-product-id');
+			var cartId = document.getElementById('cart-info').getAttribute('data-cart-id');
+
+			var promises = [];
+			Object.keys(selectedOptions).forEach(function (optionKey) {
+				var option = selectedOptions[optionKey];
+				var quantity = option.quantity;
+				var colorId = option.colorId;
+				var sizeId = option.sizeId;
+
+				// 각 상품을 장바구니에 담는 AJAX 요청을 Promise로 변환
+				var promise = new Promise(function (resolve, reject) {
+					$.ajax({
+						url: '/cart/add',
+						method: 'POST',
+						data: {
+							cartId: cartId,
+							productId: productId,
+							colorId: colorId, // 색상
+							sizeId: sizeId, // 사이즈
+							quantity: quantity // 수량
+						},
+						success: function (response) {
+							resolve(response);
+						},
+						error: function (error) {
+							reject(error);
+						}
+					});
+				});
+
+				promises.push(promise);
+			});
+
+			// 모든 AJAX 요청이 완료되었을 때 메시지 표시
+			Promise.all(promises).then(function () {
+
+				alert('장바구니에 모든 상품이 추가되었습니다.');
+				location.reload();
+
+			}).catch(function () {
+				alert('장바구니에 상품을 추가하는데 실패했습니다.');
+			});
+
+			// 선택된 옵션 초기화
+			selectedOptions = {};
+			// 테이블 초기화
+			document.getElementById('totalProducts').querySelector('tbody').innerHTML = '';
+			calculateTotalPrice(); // 총 가격 다시 계산
+		});
+
+	</script>
+
+
+	<script>
+		var productPrice = "[[${product.price}]]";
+		var selectedOptions = {}; // 선택된 옵션을 추적하기 위한 객체
+
+		function addSelectedOptionsToCart() {
+			var colorSelect = document.getElementById('colorSelect');
+			var sizeSelect = document.getElementById('sizeSelect');
+			var quantityInput = document.getElementById('quantity');
+
+
+
+			var selectedColorId = colorSelect.value; // 색상의 ID
+			var selectedSizeId = sizeSelect.value; // 사이즈의 ID
+			var selectedColorText = colorSelect.options[colorSelect.selectedIndex].text;
+			var selectedSizeText = sizeSelect.options[sizeSelect.selectedIndex].text;
+			var selectedQuantity = parseInt(quantityInput.value);
+
+			// 옵션 선택 검증
+			if (!selectedColorId || !selectedSizeId) {
+				alert('색상과 사이즈를 모두 선택해 주세요.');
+				return; // 함수 실행 중단
+			}
+			if (selectedQuantity < 1) {
+				alert('수량은 최소 1 이상이어야 합니다.');
+				return; // 함수 실행 중단
+			}
+
+			var optionKey = selectedColorText + '/' + selectedSizeText; // 색상과 사이즈 조합으로 키 생성
+
+			if (selectedOptions[optionKey]) {
+				// 이미 선택된 옵션인 경우
+				selectedOptions[optionKey].quantity += selectedQuantity;
+				updateRowForOption(optionKey);
+
+			} else {
+				// 새로운 옵션인 경우
+				var additionalPrice = getAdditionalPriceForSelectedSize(); // 추가 금액 가져오기
+				var numericProductPrice = parseFloat(productPrice); // 문자열을 숫자로 변환
+				var totalOptionPrice = (numericProductPrice + additionalPrice) * selectedQuantity; // 기본 가격 + 추가 금액
+
+
+
+				var table = document.getElementById('totalProducts').querySelector('tbody');
+				var newRow = table.insertRow(table.rows.length);
+
+				var cell1 = newRow.insertCell(0);
+				var cell2 = newRow.insertCell(1);
+				var cell3 = newRow.insertCell(2);
+				var cell4 = newRow.insertCell(3);
+
+				cell1.innerHTML = `${selectedColorText} / ${selectedSizeText}`;
+				cell2.innerHTML = selectedQuantity;
+				cell3.innerHTML = totalOptionPrice.toLocaleString() + '원';
+				cell4.innerHTML = '<button onclick="removeRowAndUpdatePrice(this, \'' + optionKey + '\')" style="background-color:unset; border:0;"><i class="fa-solid fa-trash" style="color:black; font-size: 24px;"></i></button>';
+
+				selectedOptions[optionKey] = {
+					row: newRow,
+					colorId: selectedColorId,
+					sizeId: selectedSizeId,
+					quantity: selectedQuantity
+				};
+			}
+
+			calculateTotalPrice();
+		}
+
+
+		function getAdditionalPriceForSelectedSize() {
+			var sizeSelect = document.getElementById('sizeSelect');
+			var selectedSizeOption = sizeSelect.options[sizeSelect.selectedIndex];
+			if (selectedSizeOption && selectedSizeOption.value) {
+				var match = selectedSizeOption.textContent.match(/\(\+(.*)원\)/);
+				return match ? parseInt(match[1]) : 0;
+			}
+			return 0;
+		}
+
+
+		function updateRowForOption(optionKey) {
+			var option = selectedOptions[optionKey];
+			var newRow = option.row;
+			var newQuantity = option.quantity;
+			var additionalPrice = getAdditionalPriceForSelectedSize();
+			var numericProductPrice = parseFloat(productPrice); // 문자열을 숫자로 변환
+			var newTotalPrice = (numericProductPrice + additionalPrice) * newQuantity;
+
+			newRow.cells[1].innerHTML = newQuantity;
+			newRow.cells[2].innerHTML = newTotalPrice.toLocaleString() + '원';
+		}
+
+
+		function removeRowAndUpdatePrice(button, optionKey) {
+			var row = button.parentNode.parentNode;
+			row.parentNode.removeChild(row);
+			delete selectedOptions[optionKey];
+			calculateTotalPrice();
+		}
+
+		function calculateTotalPrice() {
+			var table = document.getElementById('totalProducts').querySelector('tbody');
+			var total = 0;
+			for (var i = 0; i < table.rows.length; i++) {
+				var row = table.rows[i];
+				var price = parseInt(row.cells[2].innerText.replace('원', '').replace(/,/g, ''));
+				total += price;
+			}
+
+			document.getElementById('totalPrice').innerHTML = '총 상품금액: ' + total.toLocaleString() + '원';
+		}
+
+	</script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			initializeDropdowns();
+			fetchColors();
+		});
+
+		document.getElementById('sizeSelect').addEventListener('change', function () {
+			// 사이즈가 선택될 때마다 수량 입력칸을 1로 초기화
+			document.getElementById('quantity').value = 1;
+		});
+
+		function initializeDropdowns() {
+			// 색상과 사이즈 드롭다운에 기본 옵션 추가
+			var colorSelect = document.getElementById('colorSelect');
+			var sizeSelect = document.getElementById('sizeSelect');
+
+			colorSelect.innerHTML = '<option value="">- [필수] 옵션을 선택해 주세요 -</option>';
+			sizeSelect.innerHTML = '<option value="">- [필수] 색상을 선택해 주세요 -</option>';
+		}
+
+		// JavaScript 코드 내에서
+		function fetchColors() {
+			var productId = document.getElementById('product-info').getAttribute('data-product-id');
+
+			// 재고 있는 색상만 가져오는 수정된 API 호출
+			$.ajax({
+				url: `/product/${productId}/colors`, // API 엔드포인트 수정
+				type: 'GET',
+				success: function (colors) {
+					updateColorOptions(colors);
+				},
+				error: function (error) {
+					console.error('Error fetching colors:', error);
+				}
+			});
+		}
+
+
+		// 색상 옵션을 업데이트하는 함수
+		function updateColorOptions(colors) {
+			var colorSelect = document.getElementById('colorSelect');
+			colorSelect.innerHTML = '<option value="">- [필수] 옵션을 선택해 주세요 -</option>';
+			colors.forEach(function (color) {
+				var option = document.createElement('option');
+				option.value = color.id;
+				option.textContent = color.name;
+				colorSelect.appendChild(option);
+			});
+		}
+
+		// AJAX 요청으로 사이즈 목록 가져오기
+		function fetchSizes(productId, colorId) {
+			$.ajax({
+				url: `/product/${productId}/sizes?colorId=${colorId}`,
+				type: 'GET',
+				success: function (sizes) {
+					updateSizeOptions(sizes);
+				},
+				error: function (error) {
+					console.error('Error fetching sizes:', error);
+				}
+			});
+		}
+
+
+		// 사이즈 옵션을 업데이트하는 함수
+		function updateSizeOptions(sizes) {
+			var sizeSelect = document.getElementById('sizeSelect');
+			sizeSelect.innerHTML = '<option value="">- 사이즈 선택 -</option>';
+			sizes.forEach(function (size) {
+				var option = document.createElement('option');
+				option.value = size.id;
+				option.textContent = size.name + (size.additionalPrice ? ' (+' + size.additionalPrice + '원)' : '');
+				sizeSelect.appendChild(option);
+			});
+		}
+
+
+		// 색상 선택 변경 시 이벤트 핸들러
+		document.getElementById('colorSelect').addEventListener('change', function () {
+			var selectedColorId = this.value;
+			var productId = document.getElementById('product-info').getAttribute('data-product-id');
+			fetchSizes(productId, selectedColorId);
+		});
+
+	</script>
+	<script>
+		// 페이지의 제품 ID 설정 (올바른 값을 설정해야 합니다)
+		var productId = document.getElementById('product-info').getAttribute('data-product-id');
+
+		function loadReviews(productId, page) {
+			$.ajax({
+				url: `/api/product/${productId}/reviews?page=${page}`,
+				type: 'GET',
+				success: function (response) {
+					updateReviewsUI(response.reviews);
+					updatePaginationUI(productId, response.currentPage, response.totalPages, response.startPage, response.endPage)
+				},
+				error: function (error) {
+					console.error('Error fetching reviews:', error);
+				}
+			});
+		}
+
+		function updateReviewsUI(reviews) {
+			let reviewsHtml = '';
+			reviews.forEach((review, index) => {
+				let imagesHtml = '';
+				if (review.imageUrls && review.imageUrls.trim() !== '') {
+					imagesHtml = review.imageUrls.split(',').map(url =>
+						`<div class="swiper-slide" style="background-color: unset;">
+                    <a href="javascript:void(0)" onclick="openModal(${index})">
+                        <picture>
+                            <img src="/uploaded_files/review/${url}" alt="Slide Image" style="width:100%; height:100%;" decoding="async" loading="lazy"/>
+                        </picture>
+                    </a>
+                </div>`
+					).join('');
+				}
+
+
+
+				const starsHtml = Array.from({length: 5}, (_, i) =>
+					`<span class="star" data-value="${i + 1}">
+                <i class="${i < review.rating ? 'fa-solid' : 'fa-regular'} fa-star"></i>
+            </span>`
+				).join('');
+
+				const memberNameMasked = review.memberName.charAt(0) + '*'.repeat(review.memberName.length - 1);
+
+				reviewsHtml += `
+				<table><colgroup>
+			<col style="width: 100px;">
+			<!-- 추가 열 설정 -->
+		</colgroup>
+            <div class="modal" id="modal-${index}">
+                <div class="swiper-container modalSwiper" id="swiper-${index}" style="width:100%; height:100%;" decoding="async"
+													loading="lazy"/>
+                    <span class="close">&times;</span>
+                    <div class="swiper-wrapper">${imagesHtml}</div>
+                    <div style="top:50px" class="swiper-pagination" id="swiper-pagination-${index}"></div>
+                    <div style="top:73px" class="swiper-button-prev" id="swiper-button-prev-${index}"></div>
+                    <div style="top:73px" class="swiper-button-next" id="swiper-button-next-${index}"></div>
+                </div>
+            </div>
+            <th rowspan="5">
+                <div class="swiper-container" id="swiper-${index}">
+                    <div class="swiper-wrapper">${imagesHtml}</div>
+                </div>
+            </th>
+            <tr>
+				<td>
+					<div id="rating-${index}" data-rating="${review.rating}" style="display: flex; float: inline-end; justify-content: center;">
+                            ${starsHtml}
+                        </div>
+				<div style="display: flex; width:100px; align-items: baseline;">${review.color + ' / ' + review.size}</div>
+				<td>
+				</tr>
+            <tr>
+				<td>
+                    <div style="display: flex; width:100px; align-items: baseline;">${review.title}</div>
+                        
+                </td>
+                   
+            </tr>
+            <tr>
+                <td>
+                    <div class="review">
+                        <p id="review-text-${index}">${review.text}</p>
+                        <button onclick="expandReview(${index})" id="read-more-btn-${index}" style="float: inline-end; width: 50px; font-size: 12px; display: none;">더보기</button>
+                        <button onclick="collapseReview(${index})" id="collapse-btn-${index}" style="float: inline-end; width: 50px; font-size: 12px; display: none;">닫기</button>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <div style="float: inline-start;"><i class="fa-solid fa-user" style="font-size: 12px;"></i>${memberNameMasked}</div>
+                        <div style="float: inline-end;"><i class="fa-solid fa-clock" style="font-size: 12px;"></i>${formatDate(review.createdDate)}</div>
+                    </div>
+                </td>
+            </tr>
+            </table>
+        `;
+			});
+
+			document.getElementById('reviews-container').innerHTML = reviewsHtml;
+
+			reviews.forEach((review, index) => {
+				// 리뷰 텍스트 더보기/닫기 로직 적용
+				var reviewText = document.getElementById('review-text-' + index);
+				var readMoreBtn = document.getElementById('read-more-btn-' + index);
+				var collapseBtn = document.getElementById('collapse-btn-' + index);
+
+				if (reviewText.scrollHeight > 16) {
+					reviewText.style.maxHeight = "16px";
+					readMoreBtn.style.display = "block";
+				}
+
+				// 별점 로직 적용
+				var ratingContainer = document.getElementById('rating-' + index);
+				var stars = ratingContainer.querySelectorAll('.star');
+				updateStars(stars, ratingContainer.getAttribute('data-rating'));
+
+				// 모달과 스와이퍼 초기화
+				initModalAndSwiper(index);
+			});
+		}
+
+		function updateStars(stars, rating) {
+			stars.forEach((star, index) => {
+				star.querySelector('i').className = index < rating ? 'fa-solid fa-star' : 'fa-regular fa-star';
+			});
+		}
+
+		function initModalAndSwiper(index) {
+			// 모달 초기화
+			var modalId = "modal-" + index;
+			var modal = document.getElementById(modalId);
+			var span = modal.getElementsByClassName("close")[0];
+
+			span.onclick = function () {
+				modal.style.display = "none";
+				modalSwiper.destroy();
+			};
+
+			// 모달에 사용되는 스와이퍼 초기화
+			var modalSwiperId = 'swiper-' + index;
+			var modalSwiper = new Swiper('#' + modalSwiperId, {
+				loop: true,
+				autoplay: {
+					delay: 2500,
+					disableOnInteraction: false
+				},
+				pagination: {
+					el: '#swiper-pagination-' + index,
+					clickable: true,
+				},
+				navigation: {
+					nextEl: '#swiper-button-next-' + index,
+					prevEl: '#swiper-button-prev-' + index,
+				},
+			});
+		}
+
+
+		function formatDate(date) {
+			let d = new Date(date);
+			return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours()}시 ${d.getMinutes()}분`;
+		}
+
+		function updatePaginationUI(productId, currentPage, totalPages, startPage, endPage) {
+			let paginationHtml = '';
+
+			// 이전 페이지 그룹 버튼
+			if (startPage > 0) {
+				paginationHtml += `
+            <li>
+                <button type="button" onclick="loadReviews(${productId}, ${startPage - 1})">
+                    <i class="fa-solid fa-backward" style="font-size: 19px;"></i>
+                </button>
+            </li>`;
+			}
+
+			// 페이지 번호 버튼
+			for (let i = startPage; i <= endPage; i++) {
+				paginationHtml += `
+        <li>
+            <button type="button" class="${i === currentPage ? 'active' : ''}" onclick="loadReviews(${productId}, ${i})">
+                ${i + 1}
+            </button>
+        </li>`;
+			}
+
+			// 다음 페이지 그룹 버튼
+			if (endPage + 1 < totalPages) {
+				paginationHtml += `
+            <li>
+                <button type="button" onclick="loadReviews(${productId}, ${endPage + 1})">
+                    <i class="fa-solid fa-forward" style="font-size: 19px;"></i>
+                </button>
+            </li>`;
+			}
+
+			// 페이지네이션 HTML을 페이지네이션 컨테이너에 삽입
+			$('.pagination ul').html(paginationHtml);
+		}
+
+
+		// 초기 리뷰 로드
+		loadReviews(productId, 0);
+	</script>
+
+
+
+
+
+
+
+	<script>
+
+
+		$(document).ready(function () {
+			$('.swiper-container-main').each(function (index) {
+				new Swiper(this, {
+					loop: true,
+					centeredSlides: true,
+					speed: 2000,
+					autoplay: {
+						delay: 0,
+						disableOnInteraction: false,
+					},
+					slidesPerView: 1,
+				});
+			});
+		});
+
+	</script>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var reviews = document.querySelectorAll('.review');
+
+			reviews.forEach(function (review, index) {
+				var reviewText = review.querySelector('p');
+				var readMoreBtn = review.querySelector('button');
+
+				if (reviewText.scrollHeight > 16) {
+					reviewText.style.maxHeight = "16px";
+					readMoreBtn.style.display = "block";
+				}
+			});
+		});
+
+
+		function expandReview(index) {
+			var reviewText = document.getElementById('review-text-' + index);
+			var readMoreBtn = document.getElementById('read-more-btn-' + index);
+			var collapseBtn = document.getElementById('collapse-btn-' + index);
+
+			reviewText.style.maxHeight = "none";
+			readMoreBtn.style.display = "none";
+			collapseBtn.style.display = "block";
+		}
+
+		function collapseReview(index) {
+			var reviewText = document.getElementById('review-text-' + index);
+			var readMoreBtn = document.getElementById('read-more-btn-' + index);
+			var collapseBtn = document.getElementById('collapse-btn-' + index);
+
+			reviewText.style.maxHeight = "16px";
+			readMoreBtn.style.display = "flex";
+			collapseBtn.style.display = "none";
+		}
+	</script>
+
+	<script>
+		// 별점 스크립트 수정
+		document.addEventListener('DOMContentLoaded', function () {
+			var ratingContainers = document.querySelectorAll('[id^="rating-"]');
+			ratingContainers.forEach(function (container) {
+				var currentRating = container.getAttribute('data-rating') || 0;
+				var stars = container.querySelectorAll('.star');
+
+				updateStars(stars, currentRating);
+			});
+
+			function updateStars(stars, rating) {
+				stars.forEach(function (star, index) {
+					star.querySelector('i').className = index < rating ? 'fa-solid fa-star' : 'fa-regular fa-star';
+				});
+			}
+		});
+
+	</script>
+	<script>
+		$(document).ready(function () {
+			$('.swiper-container').each(function (index) {
+				new Swiper(this, {
+					loop: true,
+					centeredSlides: true,
+					speed: 2000,
+					autoplay: {
+						delay: 0,
+						disableOnInteraction: false,
+					},
+					slidesPerView: 1,
+				});
+			});
+		});
+	</script>
+	<script>
+		function openModal(index) {
+			var modalId = "modal-" + index;
+			var modal = document.getElementById(modalId);
+			modal.style.display = "block";
+
+			var swiperId = 'swiper-' + index;
+			var swiper = new Swiper('#' + swiperId, {
+				loop: true,
+				pagination: {
+					el: '#swiper-pagination-' + index,
+					clickable: true,
+				},
+				navigation: {
+					nextEl: '#swiper-button-next-' + index,
+					prevEl: '#swiper-button-prev-' + index,
+				},
+			});
+
+			var span = modal.getElementsByClassName("close")[0];
+			span.onclick = function () {
+				modal.style.display = "none";
+				swiper.destroy();
+			}
+		}
+	</script>
+
+	<script>
+
+
+		function purchaseProduct() {
+			if (Object.keys(selectedOptions).length === 0) {
+				alert('옵션을 선택해 주세요.');
+				return;
+			}
+			var productId = document.getElementById('product-info').getAttribute('data-product-id');
+			var cartId = document.getElementById('cart-info').getAttribute('data-cart-id');
+
+			var productIds = [];
+			var colorIds = [];
+			var sizeIds = [];
+			var promises = [];
+
+			Object.keys(selectedOptions).forEach(function (optionKey) {
+				var option = selectedOptions[optionKey];
+				var quantity = option.quantity;
+				var colorId = option.colorId;
+				var sizeId = option.sizeId;
+
+				productIds.push(productId);
+				colorIds.push(colorId);
+				sizeIds.push(sizeId);
+
+				var promise = new Promise(function (resolve, reject) {
+					$.ajax({
+						url: '/cart/add-to-cart-and-checkout',
+						method: 'POST',
+						data: {
+							cartId: cartId,
+							productId: productId,
+							colorId: colorId,
+							sizeId: sizeId,
+							quantity: quantity
+						},
+						success: function (response) {
+							resolve(response);
+						},
+						error: function (error) {
+							reject(error);
+						}
+					});
+				});
+
+				promises.push(promise);
+			});
+
+			Promise.all(promises).then(function () {
+				// 모든 상품이 추가되었을 때 결제 페이지로 리디렉션
+				window.location.href = `/checkout?products=${productIds.join(',')}&colors=${colorIds.join(',')}&sizes=${sizeIds.join(',')}`;
+			}).catch(function () {
+				alert('로그인을 먼저 해주세요.');
+			});
+		}
+
+
+
+	</script>
+
+	<script>
+		$(document).ready(function () {
+			// 관심 상품 추가 버튼에 대한 이벤트 리스너
+			$('.addFavorite').click(function () {
+				var productId = this.id.split('-')[1];
+				var addButton = $(this);
+				var removeButton = $('#removeFavorite-' + productId);
+
+				$.ajax({
+					url: '/api/favorites/add',
+					type: 'POST',
+					data: {
+						memberId: '[[${memberId}]]', // 실제 멤버 ID로 대체
+						productId: productId
+					},
+					success: function (response) {
+						addButton.hide();
+						removeButton.show();
+					}
+				});
+			});
+
+			// 관심 상품 해제 버튼에 대한 이벤트 리스너
+			$('.removeFavorite').click(function () {
+				var productId = this.id.split('-')[1];
+				var removeButton = $(this);
+				var addButton = $('#addFavorite-' + productId);
+
+				$.ajax({
+					url: '/api/favorites/remove',
+					type: 'POST',
+					data: {
+						memberId: '[[${memberId}]]', // 실제 멤버 ID로 대체
+						productId: productId
+					},
+					success: function (response) {
+						removeButton.hide();
+						addButton.show();
+					}
+				});
+			});
+		});
+	</script>
+
+
+
+
+
+
+
+
+</body>
+
+</html>

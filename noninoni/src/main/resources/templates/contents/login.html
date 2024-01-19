@@ -1,0 +1,162 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>Insert title here</title>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<style>
+		#rememberMe:checked {
+			background-color: black;
+			background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>');
+			background-size: 16px 16px;
+			background-position: center;
+			background-repeat: no-repeat;
+		}
+
+		#rememberId:checked {
+			background-color: black;
+			background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>');
+			background-size: 16px 16px;
+			background-position: center;
+			background-repeat: no-repeat;
+		}
+	</style>
+</head>
+
+<body>
+	<!-- header를 포함하는 부분 -->
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<h2 class="title" style=" padding-block: 5px;">회원 로그인</h2>
+	<form class="form" action="login" method="post" onsubmit="saveUsername()">
+		<input id="memberId" name="memberId" fw-filter="isFill" fw-label="아이디" fw-msg="" class="inputTypeText"
+			placeholder="아이디" value="" type="text" style="width: 100%; padding-block: 5px;">
+		<input id="password" name="password" fw-filter="isFill&amp;isMin[4]&amp;isMax[16]" fw-label="패스워드" fw-msg=""
+			autocomplete="off" value="" type="password" placeholder="패스워드"
+			style="width: calc(100% - 2px); padding-block: 5px;">
+
+
+		<div class="remember-me-checkbox"
+			style="display: flex; justify-content: space-between; width: 100%; border-top: 1px solid silver;">
+			<!-- Remember Me Checkbox -->
+			<div style="float: inline-start;">
+				<label for="rememberMe" style="padding-block: 5px; width: auto; border: 0;">자동 로그인
+					<input type="checkbox" id="rememberMe" name="remember-me" style="border: 1px solid silver; appearance: none; float: left;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;" />
+				</label>
+
+			</div>
+			<!-- Remember Id Checkbox -->
+			<div>
+				<label for="rememberId" style=" padding-block: 5px; width: auto; border: 0;">아이디
+					저장<input type="checkbox" id="rememberId" name="rememberId" style="border: 1px solid silver; appearance: none; float: left;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;"></label>
+			</div>
+		</div>
+
+		<div class="ec-base-button gFull">
+			<button type="submit" style="width: 100%;" onclick="enableSignUpButton()">로그인</button>
+
+		</div>
+	</form>
+	<div style="display: flex; justify-content: space-between;">
+		<button type="button" style="font-weight: bold; font-size: 15px; width: 33.3%; height: 30px;"
+			th:onclick="'window.location.href=\'' + @{/find-id} + '\''">아이디 찾기</button>
+		<button type="button" style="font-weight: bold;  font-size: 15px; width: 33.3%; height: 30px;"
+			th:onclick="'window.location.href=\'' + @{/forgot-password} + '\''">비밀번호 찾기</button>
+		<button type="button" style="font-weight: bold;  font-size: 15px; width: 33.3%; height: 30px;"
+			th:onclick="'window.location.href=\'' + @{/join} + '\''">회원 가입</button>
+	</div>
+
+
+	<div>
+		<h2>SNS 로그인</h2>
+	</div>
+	<div style="display: flex; justify-content: space-between;">
+		<a th:href="@{/oauth2/authorization/naver}">
+			<img th:src="@{images/icon/naver.png}" style="width: 100px; height: 100px;" alt="Naver Login" />
+		</a>
+		<a th:href="@{/oauth2/authorization/kakao}">
+			<img th:src="@{images/icon/kakao.png}" style="width: 100px; height: 100px;" alt="Kakao Login" />
+		</a>
+		<a th:href="@{/oauth2/authorization/google}">
+			<img th:src="@{images/icon/google.png}" style="width: 100px; height: 100px;" alt="Google Login">
+		</a>
+	</div>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+
+	<div id="loginError" th:data="${loginError}" style="display:none;"></div>
+	<script>
+		var loginError = document.getElementById('loginError').getAttribute('data');
+		if (loginError) {
+			alert(loginError);
+		}
+		var urlParams = new URL(location.href).searchParams;
+		var logoutReason = urlParams.get('logout');
+		if (logoutReason === 'other') {
+			alert("다른 곳에서 로그인되어 로그아웃 되었습니다.");
+		}
+	</script>
+
+	<script>
+		// 페이지 로드 시 아이디 불러오기
+		window.onload = function () {
+
+			var rememberedUsername = getCookie("rememberedUsername");
+			if (rememberedUsername) {
+				document.getElementById("memberId").value = rememberedUsername;
+				document.getElementById("rememberId").checked = true;
+			}
+		};
+
+		// 아이디 저장 함수
+		function saveUsername() {
+			if (document.getElementById("rememberId").checked) {
+				var username = document.getElementById("memberId").value;
+				setCookie("rememberedUsername", username, 30); // 쿠키 30일간 유지
+			} else {
+				setCookie("rememberedUsername", "", -1); // 쿠키 삭제
+			}
+		}
+
+		// 쿠키 설정 함수
+		function setCookie(name, value, days) {
+			var expires = "";
+			if (days) {
+				var date = new Date();
+				date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+				expires = "; expires=" + date.toUTCString();
+			}
+			document.cookie = name + "=" + (value || "") + expires + "; path=/";
+		}
+
+		// 쿠키 가져오기 함수
+		function getCookie(name) {
+			var nameEQ = name + "=";
+			var ca = document.cookie.split(';');
+			for (var i = 0; i < ca.length; i++) {
+				var c = ca[i];
+				while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+				if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+			}
+			return null;
+		}
+	</script>
+
+
+
+
+
+
+
+</body>
+
+</html>

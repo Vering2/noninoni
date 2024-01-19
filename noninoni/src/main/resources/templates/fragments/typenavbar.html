@@ -1,0 +1,55 @@
+<!-- fragments/navbar.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <style>
+        #navbar {
+            background-color: #fff;
+            overflow: hidden;
+        }
+
+        #navbar ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+
+        #navbar li {
+            float: left;
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            color: black;
+            box-sizing: border-box;
+            width: 25%;
+            padding: 5px 0px;
+        }
+
+        #navbar li a {
+            text-decoration: none;
+            color: black;
+            font-size: 11px;
+        }
+
+        #navbar li:hover,
+        #navbar li a:hover {
+            text-decoration: none;
+            color: #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar">
+        <ul>
+            <li th:each="menu : ${typemenus}">
+                <a th:href="@{${menu.url}}" th:text="${menu.name}"></a>
+            </li>
+        </ul>
+    </div>
+</body>
+
+</html>

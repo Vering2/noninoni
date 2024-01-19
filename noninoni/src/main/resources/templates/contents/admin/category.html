@@ -1,0 +1,80 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+</head>
+
+<body>
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<h2>카테고리 설정</h2>
+
+	<!-- 카테고리 목록 -->
+	<table style="width: 100%;">
+		<colgroup>
+			<col style="width: 10%">
+			<col style="width: 50%;">
+			<col style="width: 20%">
+			<col style="width: 20%">
+		</colgroup>
+		<tr th:each="category, iterStat : ${categories}">
+			<form th:action="@{/admin/category/update}" method="post" onsubmit="return confirmUpdate()">
+				<input type="text" name="id" th:value="${category.id}" hidden />
+				<td>
+					<input type="text" name="number" th:value="${category.number}" />
+				</td>
+				<td>
+					<input type="text" th:id="'type-' + ${iterStat.index}" name="type" th:value="${category.type}" />
+				</td>
+				<td>
+					<input style=" background-color: black; color: white;" type="submit" value="수정" />
+				</td>
+			</form>
+			<td>
+				<form th:action="@{/admin/category/delete}" method="post" onsubmit="return confirmDelete()">
+					<input type="text" name="id" th:value="${category.id}" hidden />
+					<input style="background-color: black; color: white;" type="submit" value="삭제" />
+				</form>
+			</td>
+		</tr>
+	</table>
+
+	<!-- 카테고리 추가 -->
+	<form th:action="@{/admin/category/add}" method="post">
+		<table style="width: 100%;">
+			<colgroup>
+				<col style="width: 10%">
+				<col style="width: 50%;">
+				<col style="width: 40%">
+			</colgroup>
+			<tr>
+				<td><input type="text" name="number" placeholder="순서" /></td>
+				<td><input type="text" name="type" placeholder="새 카테고리" /></td>
+				<td><input type="submit" style="background-color: black; color: white;" value="추가" /></td>
+			</tr>
+		</table>
+	</form>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+
+
+	<script>
+		function confirmUpdate() {
+			return confirm("정말로 이 카테고리를 수정하시겠습니까?");
+		}
+
+		function confirmDelete() {
+			return confirm("정말로 이 카테고리를 삭제하시겠습니까?");
+		}
+	</script>
+
+	<!-- 에러 메시지가 있는 경우, JavaScript alert 표시 -->
+	<script th:if="${error}">
+		alert("[[${error}]]");
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<style>
+		.star {
+			cursor: pointer;
+		}
+
+		.image-container {
+			flex: 0 0 50%;
+			/* 모바일 화면에서 기본적으로 한 줄에 하나 */
+			max-width: 50%;
+			/* 모바일 화면에서 기본적으로 한 줄에 하나 */
+		}
+
+		/* 데스크탑 화면에서 한 줄에 네 개가 나오게 하는 미디어 쿼리 */
+		@media (min-width: 768px) {
+			.image-container {
+				flex: 0 0 25%;
+				/* 데스크탑에서는 한 줄에 네 개 */
+				max-width: 25%;
+				/* 데스크탑에서는 한 줄에 네 개 */
+			}
+		}
+	</style>
+
+</head>
+
+<body>
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<h2>리뷰 작성</h2>
+
+	<!-- 리뷰 작성 폼 -->
+	<form th:action="@{/submit-review}" method="post" enctype="multipart/form-data"
+		onsubmit="return validateAndSubmitForm(this)">
+		<input type="hidden" name="orderInfoId" th:value="${orderInfo.id}" />
+
+		<label for="title">리뷰 제목:</label>
+		<input type="text" id="title" name="title" required>
+
+		<label for="text">리뷰 내용:</label>
+		<textarea id="text" name="text" required></textarea>
+
+		<div id="rating">
+			<span class="star" data-value="1"><i class="fa-regular fa-star"></i></span>
+			<span class="star" data-value="2"><i class="fa-regular fa-star"></i></span>
+			<span class="star" data-value="3"><i class="fa-regular fa-star"></i></span>
+			<span class="star" data-value="4"><i class="fa-regular fa-star"></i></span>
+			<span class="star" data-value="5"><i class="fa-regular fa-star"></i></span>
+			<input type="hidden" id="ratingValue" name="rating" value="5">
+		</div>
+
+		<!-- Main Image File Upload -->
+		<label>리뷰 사진</label>
+		<div id="imageUrl">
+		</div>
+		<button type="button" onclick="addInputFile('imageUrl')"
+			style="width: 100%; background-color: black; color: white; font-size: 19px;">사진 추가하기</button>
+
+		<button type="submit">리뷰 제출</button>
+	</form>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+	<script type="text/javascript">
+		function resizeImage(file, callback) {
+			var reader = new FileReader();
+			reader.onload = function (e) {
+				var img = document.createElement("img");
+				img.onload = function () {
+					var canvas = document.createElement("canvas");
+					var ctx = canvas.getContext("2d");
+
+					// 여기서 이미지 사이즈를 조정합니다.
+					var maxWidth = 800; // 최대 가로 크기
+					var maxHeight = 600; // 최대 세로 크기
+					var ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
+					canvas.width = img.width * ratio;
+					canvas.height = img.height * ratio;
+
+					ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+					canvas.toBlob(function (blob) {
+						callback(blob);
+					}, 'image/jpeg', 0.9); // 여기서 이미지 형식과 품질을 설정할 수 있습니다.
+				};
+				img.src = e.target.result;
+			};
+			reader.readAsDataURL(file);
+		}
+
+		function addInputFile(containerId) {
+			var container = document.getElementById(containerId);
+			var input = document.createElement("input");
+			input.type = "file";
+			input.name = containerId + "[]";
+			input.accept = "image/*"; // 이미지만 허용
+			input.onchange = function (e) {
+				resizeImage(e.target.files[0], function (resizedImage) {
+					// 리사이징된 Blob을 새로운 input 필드로 추가
+					var newInput = document.createElement("input");
+					newInput.type = "file";
+					newInput.name = containerId + "[]";
+					newInput.files = [resizedBlob]; // 이 부분은 직접 설정할 수 없으므로 대안적인 방법을 찾아야 합니다.
+					container.appendChild(newInput);
+				});
+			};
+			container.appendChild(input);
+		}
+
+		function validateAndSubmitForm(form) {
+			// 모든 파일 입력 필드를 순회
+			var fileInputs = form.querySelectorAll('input[type="file"]');
+			fileInputs.forEach(function (input) {
+				// 파일이 선택되지 않은 경우, 해당 필드 제거
+				if (input.files.length === 0) {
+					input.parentNode.removeChild(input);
+				}
+			});
+			return true; // 폼 제출 계속 진행
+		}
+	</script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var stars = document.querySelectorAll('#rating .star');
+			var initialRating = 5; // 초기 별점 설정
+			updateStars(initialRating); // 페이지 로드 시 별점 초기화
+
+			stars.forEach(function (star) {
+				star.addEventListener('click', function () {
+					var rating = this.getAttribute('data-value');
+					document.getElementById('ratingValue').value = rating;
+					updateStars(rating);
+				});
+			});
+
+			function updateStars(rating) {
+				stars.forEach(function (star, index) {
+					star.querySelector('i').className = index < rating ? 'fa-solid fa-star' : 'fa-regular fa-star';
+				});
+			}
+		});
+	</script>
+
+
+</body>
+
+</html>

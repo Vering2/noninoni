@@ -1,0 +1,401 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<style>
+		.choose-button {
+			background-color: white;
+			color: black;
+		}
+
+		.button-container {
+			/* Flexbox 레이아웃 적용 */
+			justify-content: space-between;
+			/* 버튼 간격 조정 */
+		}
+
+		.swiper-container {
+			overflow: hidden;
+		}
+
+
+		.content {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100px;
+			height: 100px;
+			/* 컨텐츠 내용 스타일링 */
+		}
+
+		/* Swiper 컨테이너의 크기 조정 */
+		.swiper-container {
+			width: 100px;
+			/* 너비를 100%로 설정 */
+			height: 100px;
+			/* 높이를 300px로 설정 */
+		}
+
+		/* 각 슬라이드 항목의 크기 조정 */
+		.swiper-slide {
+			text-align: center;
+			font-size: 18px;
+			background: #fff;
+
+			/* 슬라이드 항목 내부의 정사각형 컨테이너 크기 조정 */
+			.square-container {
+				width: 100%;
+				/* 너비를 100%로 설정 */
+				height: 100%;
+				/* 높이를 100%로 설정 */
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			/* 이미지 스타일 */
+			img {
+				max-width: 100%;
+				height: auto;
+				border-radius: 10px;
+				/* 이미지의 모서리를 둥글게 */
+			}
+		}
+
+		#omessage_select {
+			text-align-last: center;
+			/* 텍스트를 가운데 정렬 */
+			-moz-text-align-last: center;
+			/* Firefox를 위한 스타일 */
+		}
+	</style>
+
+</head>
+
+<body>
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<h2>주문 목록</h2>
+
+	<!-- 주문 상태 및 기간 검색 폼 -->
+	<form th:action="@{/orders}" method="get" id="orderSearchForm">
+		<table>
+			<tr>
+				<td colspan="2">
+					<!-- 주문 상태 선택 -->
+					<select name="orderStatus" onchange="document.getElementById('orderSearchForm').submit();">
+						<option value="" th:selected="${orderStatus == null}">전체 상태</option>
+						<option th:each="status : ${T(noninoni.entity.OrderStatus).values()}"
+							th:value="${status.name()}" th:text="${status.getDescription()}"
+							th:selected="${orderStatus != null and orderStatus == status.name()}"></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<input type="date" name="startDate" th:value="${startDate}" />
+				</td>
+				<td>
+					<input type="date" name="endDate" th:value="${endDate}" />
+				</td>
+				<input type="text" name="period" th:value="${period}" hidden />
+			</tr>
+			<tr>
+				<td colspan="2"><input name="keyword" style="width: 100%; font-size: 15px;" type="text" id="searchBox"
+						placeholder="키워드 입력" th:value="${keyword}"><button type="submit">검색</button></td>
+			</tr>
+		</table>
+
+
+	</form>
+	<div th:if="${keyword != null and !keyword.isEmpty()}">
+		<h3 th:text="${keyword} + ' 검색 결과 '">검색 결과</h3>
+	</div>
+
+
+	<table class="button-container">
+		<td>
+			<button th:classappend="${period == 'today'} ? 'choose-button'"
+				th:onclick="'window.location.href=\'' + @{/orders(orderStatus=${orderStatus}, period='today')} + '\''">오늘</button>
+		</td>
+		<td>
+			<button th:classappend="${period == '1weeks'} ? 'choose-button'"
+				th:onclick="'window.location.href=\'' + @{/orders(orderStatus=${orderStatus}, period='1weeks')} + '\''">1주일</button>
+		</td>
+		<td>
+			<button th:classappend="${period == '1month'} ? 'choose-button'"
+				th:onclick="'window.location.href=\'' + @{/orders(orderStatus=${orderStatus}, period='1month')} + '\''">1개월</button>
+		</td>
+		<td>
+			<button th:classappend="${period == '3months'} ? 'choose-button'"
+				th:onclick="'window.location.href=\'' + @{/orders(orderStatus=${orderStatus}, period='3months')} + '\''">3개월</button>
+		</td>
+		<td>
+			<button th:classappend="${period == '6months'} ? 'choose-button'"
+				th:onclick="'window.location.href=\'' + @{/orders(orderStatus=${orderStatus}, period='6months')} + '\''">6개월</button>
+		</td>
+	</table>
+
+
+	<!-- 주문 목록 -->
+	<table th:each="order, orderStat : ${orders}" th:if="${order.Status != 'TEMPORARY'}">
+		<colgroup>
+			<col style="width: 100px;">
+			<col style="width: 70px;">
+			<col style="width: 40px;">
+			<col style="width: 70px;">
+			<col style="width: 70px;">
+			<!-- 추가 열 설정 -->
+		</colgroup>
+		<thead>
+			<tr>
+				<th colspan="5">
+					<div style="display: flex; align-items: baseline;">
+						<h3 style="border: 0px;">
+							<a th:href="@{/orders/detail/{ordernum}(ordernum=${order.id})}"
+								th:text="'주문번호 ' + ${order.id}"></a>
+						</h3>
+						<h4 th:text="'(' + ${#temporals.format(order.paidAt, 'yyyy년 MM월 dd일 a hh시 mm분')} + ')'"></h4>
+					</div>
+				</th>
+
+				<!-- 기타 헤더 추가 가능 -->
+			</tr>
+		</thead>
+		<tbody th:each="info, iterStat : ${order.orderInfos}">
+			<tr>
+				<th rowspan="2">
+					<div class="swiper-container" th:id="'swiper-' + ${iterStat.index}">
+						<div class="swiper-wrapper">
+							<!-- 슬라이드 항목 -->
+							<div th:each="url : ${#strings.arraySplit(info.variant.product.mainimageUrl, ',')}"
+								class="swiper-slide">
+								<div class="square-container">
+									<a th:href="@{'/product/' + ${info.variant.product.id}}">
+										<div class="content">
+											<picture>
+												<img th:src="@{/uploaded_files/product/{url}(url=${url})}"
+													alt="Slide Image" style="width:100%; height:100%;" decoding="async"
+													loading="lazy">
+											</picture>
+										</div>
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</th>
+				<td colspan="2"
+					th:utext="${info.variant.product.name + '&lt;br&gt;' + info.variant.color.name + ' / '+ info.variant.size.name}">
+					<!-- 이 부분에 텍스트와 HTML 태그가 조합된 결과가 출력됩니다. -->
+				</td>
+
+				<td style="color: red;" th:id="'orderStatus' + ${orderStat.index} + '_' + ${iterStat.index}"
+					th:text="${info.orderStatus.getDescription()}"></td>
+				<!-- 택배 조회 버튼, 각 행마다 고유한 ID 부여 -->
+				<td rowspan="2">
+					<div
+						th:if="${info.orderStatus.toString() != 'CANCELED' || #lists.contains(userRole, '[ROLE_ADMIN]')}">
+						<button th:if="${info.orderStatus.toString() == 'SHIPPED' || 
+                info.orderStatus.toString() == 'DELIVERED' ||
+                info.orderStatus.toString() == 'EXCHANGED'}" style="width: 60px; margin: 1px; font-size: 14px;"
+							class="trackButton" th:attr="data-track-number=${info.trackNumber}, 
+                 data-order-status=${info.orderStatus.getDescription()},
+                 data-result-id='trackingResult' + ${iterStat.index}">
+							배송조회
+						</button>
+						<!-- 구매 확정 버튼 -->
+						<button
+							th:if="${!info.orderConfirm && (info.orderStatus.getDescription() == '배송완료' || info.orderStatus.getDescription() == '교환완료')}"
+							th:onclick="'confirmPurchase(' + ${info.id} + ')'"
+							style="width: 60px; margin: 1px; font-size: 14px;">구매확정</button>
+
+						<!-- 리뷰 작성 버튼 -->
+						<button th:if="${info.orderConfirm && info.reviewId == null}"
+							th:onclick="'writeReview(' + ${info.id} + ')'"
+							style="width: 60px; margin: 1px; font-size: 14px;">리뷰작성</button>
+
+						<!-- 리뷰 보기 버튼 -->
+						<button th:if="${info.reviewId != null}" th:data-review-id="${info.reviewId}"
+							onclick="viewReview(this.getAttribute('data-review-id'))"
+							style="width: 60px; margin: 1px; font-size: 14px;">리뷰보기</button>
+					</div>
+				</td>
+			</tr>
+			<tr>
+
+				<td>
+					[[${#numbers.formatInteger(info.price, 0, 'COMMA')} + '원']]</td>
+				<td th:text="${info.quantity}+'개'"></td>
+				<td>
+					[[${#numbers.formatInteger(info.sumPrice, 0, 'COMMA')} + '원']]</td>
+
+			</tr>
+			<tr>
+				<td colspan="5">
+					<!-- 택배 추적 결과 표시 영역 -->
+					<div th:id="'trackingResult' + ${iterStat.index}"></div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+	<script>
+		function confirmPurchase(orderInfoId) {
+			$.ajax({
+				url: '/confirm-purchase/' + orderInfoId,
+				method: 'POST',
+				success: function (response) {
+					// 성공적으로 처리된 경우 사용자에게 알림
+					alert('구매가 확정되었습니다.');
+
+					// 페이지 새로고침 또는 UI 업데이트
+					location.reload();
+				},
+				error: function (xhr, status, error) {
+					// 에러 처리
+					alert('오류가 발생했습니다: ' + error);
+				}
+			});
+			// AJAX 요청으로 구매 확정 처리
+			// 예: POST 요청을 '/confirm-purchase/' + orderInfoId로 보내기
+		}
+
+		function writeReview(orderInfoId) {
+			// 리뷰 작성 페이지로 이동
+			window.location.href = '/write-review/' + orderInfoId;
+		}
+	</script>
+
+	<script>
+		function viewReview(reviewId) {
+			window.location.href = '/view-review?reviewId=' + reviewId;
+		}
+	</script>
+
+
+
+	<script>
+		$(document).ready(function () {
+			$('.swiper-container').each(function (index) {
+				new Swiper(this, {
+					loop: true,
+					centeredSlides: true,
+					speed: 2000,
+					autoplay: {
+						delay: 0,
+						disableOnInteraction: false,
+					},
+					slidesPerView: 1,
+				});
+			});
+		});
+	</script>
+
+
+	<script>
+		document.querySelectorAll('.trackButton').forEach(button => {
+			button.addEventListener('click', async function () {
+				const orderStatus = this.getAttribute('data-order-status');
+				const trackNumber = this.getAttribute('data-track-number');
+				const resultDivId = this.getAttribute('data-result-id');
+				// '배송중' 또는 '배송완료'가 아닌 경우
+				if (orderStatus !== "배송중" && orderStatus !== "배송완료") {
+					alert("현재 배송중이 아닙니다.");
+					event.preventDefault(); // 이벤트 중단
+					return;
+				}
+				try {
+					const accessToken = "[[${AccessToken}]]";
+					const trackingData = await fetchTrackingInfo(accessToken, trackNumber);
+					displayTrackingInfo(trackingData, resultDivId);
+				} catch (error) {
+					console.error('Error:', error);
+				}
+			});
+		});
+
+		async function fetchTrackingInfo(accessToken, trackNumber) {
+			const url = 'https://apis.tracker.delivery/graphql';
+			const query = `query Track($carrierId: ID!, $trackingNumber: String!) {
+                track(carrierId: $carrierId, trackingNumber: $trackingNumber) {
+                    lastEvent {
+                        time
+                        status {
+                            code
+                            name
+                        }
+                        description
+                    }
+                    events(last: 10) {
+                        edges {
+                            node {
+                                time
+                                status {
+                                    code
+                                    name
+                                }
+                                description
+                            }
+                        }
+                    }
+                }
+            }`;
+			const variables = {
+				carrierId: "kr.cjlogistics",
+				trackingNumber: trackNumber
+			};
+
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${accessToken}`
+				},
+				body: JSON.stringify({query, variables})
+			});
+
+			return await response.json();
+		}
+
+		function displayTrackingInfo(data, resultDivId) {
+			let htmlContent = `<div style=" display: flex;
+    align-items: center;
+    text-align: center;"><h2 style=" flex-grow: 1;">배송 이력</h2><button class="closeButton" data-result-div-id="${resultDivId}" style="width:70px; margin-left: auto;"><i class="fa-solid fa-xmark" style="font-size: 20px;"></i></button></div><table>`;
+
+			data.data.track.events.edges.forEach(edge => {
+				const event = edge.node;
+				const eventDate = new Date(event.time);
+				const dateFormatter = new Intl.DateTimeFormat('ko-KR', {
+					year: 'numeric', month: '2-digit', day: '2-digit',
+					hour: '2-digit', minute: '2-digit', hour12: true
+				});
+				const formattedEventTime = dateFormatter.format(eventDate);
+				htmlContent += `<tr><td>${formattedEventTime}</td><td rowspan="2" style="width:70px;">${event.status.name}</td></tr><tr><td>${event.description}<td></tr>`;
+			});
+			htmlContent += '</table>';
+
+			document.getElementById(resultDivId).innerHTML = htmlContent;
+			// 모든 "X" 버튼에 대해 이벤트 리스너 추가
+			document.querySelectorAll('.closeButton').forEach(button => {
+				button.addEventListener('click', function () {
+					const divId = this.getAttribute('data-result-div-id');
+					document.getElementById(divId).innerHTML = '';
+				});
+			});
+		}
+
+
+	</script>
+
+
+
+
+
+
+</body>
+
+</html>

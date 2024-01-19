@@ -1,0 +1,377 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<style>
+		.swiper-container {
+			overflow: hidden;
+		}
+
+
+		.content {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100px;
+			height: 100px;
+			/* 컨텐츠 내용 스타일링 */
+		}
+
+		/* Swiper 컨테이너의 크기 조정 */
+		.swiper-container {
+			width: 100px;
+			/* 너비를 100%로 설정 */
+			height: 100px;
+			/* 높이를 300px로 설정 */
+		}
+
+		/* 각 슬라이드 항목의 크기 조정 */
+		.swiper-slide {
+			text-align: center;
+			font-size: 18px;
+			background: #fff;
+
+			/* 슬라이드 항목 내부의 정사각형 컨테이너 크기 조정 */
+			.square-container {
+				width: 100%;
+				/* 너비를 100%로 설정 */
+				height: 100%;
+				/* 높이를 100%로 설정 */
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			/* 이미지 스타일 */
+			img {
+				max-width: 100%;
+				height: auto;
+				border-radius: 10px;
+				/* 이미지의 모서리를 둥글게 */
+			}
+		}
+
+		#omessage_select {
+			text-align-last: center;
+			/* 텍스트를 가운데 정렬 */
+			-moz-text-align-last: center;
+			/* Firefox를 위한 스타일 */
+		}
+	</style>
+</head>
+
+<body>
+	<!-- header를 포함하는 부분 -->
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<h2>장바구니</h2>
+
+	<div th:if="${cartItems} != null">
+		<table>
+			<colgroup>
+				<col style="width: 20px;">
+				<col style="width: 100px;">
+				<col style="width: 90px;">
+				<col style="width: 90px;">
+				<col style="width: 60px;">
+				<!-- 추가 열 설정 -->
+			</colgroup>
+			<thead>
+				<tr>
+					<th><input type="checkbox" id="select-all" /></th>
+					<th style="float: inline-start;">전체선택
+					</th>
+				</tr>
+			</thead>
+			<tbody th:each="item, iterStat : ${cartItems}">
+				<tr>
+					<th rowspan="2">
+						<!-- 재고가 있는 경우에만 체크박스 표시 -->
+						<div th:if="${item.variant.stockQuantity > 0}">
+							<input type="checkbox" class="item-checkbox" th:data-item-id="${item.id}"
+								th:data-product-value="${item.variant.product.id}"
+								th:data-color-value="${item.variant.color.id}"
+								th:data-size-value="${item.variant.size.id}" th:value="${item.id}" />
+						</div>
+						<!-- 재고가 없는 경우 '품절' 텍스트 표시 -->
+						<div th:if="${item.variant.stockQuantity <= 0}">
+							<span>품절</span>
+						</div>
+					<th rowspan="2">
+						<div class="swiper-container" th:id="'swiper-' + ${iterStat.index}">
+							<div class="swiper-wrapper">
+								<!-- 슬라이드 항목 -->
+								<div th:each="url : ${#strings.arraySplit(item.product.mainimageUrl, ',')}"
+									class="swiper-slide">
+									<div class="square-container">
+										<a th:href="@{'/product/' + ${item.variant.product.id}}">
+											<div class="content">
+												<picture>
+													<img th:src="@{/uploaded_files/product/{url}(url=${url})}"
+														alt="Slide Image" style="width:100%; height:100%;"
+														decoding="async" loading="lazy">
+												</picture>
+											</div>
+										</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</th>
+
+
+					<td colspan="2"
+						th:utext="${item.variant.product.name + '&lt;br&gt;' + item.variant.color.name + ' / '+ item.variant.size.name + (item.variant.additionalPrice != null && item.variant.additionalPrice > 0 ? ' (+' + item.variant.additionalPrice + '원)' : '')}">
+						<!-- 이 부분에 텍스트와 HTML 태그가 조합된 결과가 출력됩니다. -->
+					</td>
+
+
+					<input type="text" th:value="${item.variant.color.id}" th:id="'color_' + ${iterStat.index}" hidden>
+					<input type="text" th:value="${item.variant.size.id}" th:id="'size_' + ${iterStat.index}" hidden>
+					<input type="text" th:id="'product_' + ${iterStat.index}" th:value="${item.variant.product.id}"
+						hidden>
+					</td>
+
+					<td>
+						<button type="button" style="width: 30px; background-color: unset; font-size: 15px; border: 0;"
+							class="delete-item" th:data-item-id="${item.id}"
+							th:data-product-id="'product_' + ${iterStat.index}"
+							th:data-color-id="'color_' + ${iterStat.index}"
+							th:data-size-id="'size_' + ${iterStat.index}"><i class="fa-solid fa-trash"
+								style="color: black; font-size: 15px"></i></button>
+					</td>
+				</tr>
+				<tr>
+					<td><span
+							th:text="${#numbers.formatInteger(item.product.price + item.variant.additionalPrice, 0, 'COMMA')} + '원'"></span>
+					</td>
+
+					<td>
+						<div style="display: flex;
+    justify-content: center;
+"><input style="border: 1px solid silver; text-align: right; width: 30px; height: 19px; position: relative; top: 2.5px;"
+								type="number" class="quantity" th:id="'quantity_' + ${iterStat.index}"
+								th:name="'quantity_' + ${iterStat.index}" th:value="${item.quantity}" min="1" />
+							<button
+								style="width: max-content; height: auto; background-color: unset; border: 0; padding: 0px 3px;"
+								type="button" class="update-quantity" th:data-item-id="${item.id}"
+								th:data-quantity-id="'quantity_' + ${iterStat.index}"
+								th:data-product-id="'product_' + ${iterStat.index}"
+								th:data-color-id="'color_' + ${iterStat.index}"
+								th:data-size-id="'size_' + ${iterStat.index}"><i class="fa-solid fa-pen"
+									style="font-size: 15px; color: black;"></i></button>
+						</div>
+					</td>
+					<td><span
+							th:text="${#numbers.formatInteger((item.product.price + item.variant.additionalPrice) * item.quantity, 0, 'COMMA')} + '원'"></span>
+					</td>
+
+				</tr>
+
+
+			</tbody>
+		</table>
+		<table>
+
+			<td>
+				<button type="button" id="delete-selected">선택 항목 삭제</button>
+			</td>
+
+			<td>
+				<button type="button" id="checkout-selected">선택 항목 결제</button>
+			</td>
+		</table>
+	</div>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+
+
+	<div th:if="${cartItems == null}">
+		장바구니에 상품이 없습니다.
+	</div>
+
+	<script th:inline="javascript">
+		function checkoutSelectedItems() {
+			var selectedProductIds = [];
+			var selectedColorIds = [];
+			var selectedSizeIds = [];
+
+			$('.item-checkbox:checked').each(function () {
+				selectedProductIds.push($(this).data('product-value'));
+				selectedColorIds.push($(this).data('color-value'));
+				selectedSizeIds.push($(this).data('size-value'));
+			});
+
+			if (selectedProductIds.length > 0) {
+				// 결제 페이지로 리디렉션
+				var checkoutUrl = '/checkout?products=' + selectedProductIds.join(',')
+					+ '&colors=' + selectedColorIds.join(',')
+					+ '&sizes=' + selectedSizeIds.join(',');
+				window.location.href = checkoutUrl;
+			} else {
+				alert("결제할 항목을 선택하세요.");
+			}
+		}
+
+
+		function updateQuantity(itemId, quantity, productId, colorId, sizeId) {
+			$.ajax({
+				url: '/cart/updateQuantities',
+				type: 'POST',
+				data: {
+					itemId: itemId,
+					quantity: quantity,
+					productId: productId,
+					colorId: colorId,
+					sizeId: sizeId
+				},
+				success: function (response) {
+					alert("변경 완료");
+					location.reload(); // 페이지 새로고침 또는 UI 업데이트
+				},
+				error: function (error) {
+					alert("변경 실패");
+				}
+			});
+		}
+
+
+		function deleteItem(itemId, productId, colorId, sizeId) {
+			$.ajax({
+				url: '/cart/deleteItem',
+				type: 'POST',
+				data: {
+					itemId: itemId,
+					productId: productId,
+					colorId: colorId,
+					sizeId: sizeId
+				},
+				success: function (response) {
+					// 성공적으로 처리된 후의 로직
+					// 삭제된 항목을 DOM에서 제거
+					alert(" 삭제 완료");
+					location.reload(); // 페이지 새로고침 또는 UI 업데이트
+
+				},
+				error: function (error) {
+					alert(" 삭제 실패");
+					// 오류 처리 로직
+				}
+			});
+		}
+
+		function deleteSelectedItems() {
+			var selectedIds = [];
+			var selectedproductIds = [];
+			var selectedcolorIds = [];
+			var selectedsizeIds = [];
+			$('.item-checkbox:checked').each(function () {
+				selectedIds.push($(this).data('item-id'));
+				selectedproductIds.push($(this).data('product-value'));
+				selectedcolorIds.push($(this).data('color-value'));
+				selectedsizeIds.push($(this).data('size-value'));
+			});
+
+			if (selectedproductIds.length > 0) {
+				var deleteRequest = {
+					itemIds: selectedIds,
+					cartKeys: selectedproductIds.map(function (productId, index) {
+						return productId + ":" + selectedcolorIds[index] + ":" + selectedsizeIds[index];
+					})
+				};
+
+				$.ajax({
+					url: '/cart/deleteSelected',
+					type: 'POST',
+					contentType: 'application/json',
+					data: JSON.stringify(deleteRequest),
+					success: function (response) {
+						alert("선택된 항목 삭제 완료");
+						location.reload();
+						// Update UI accordingly...
+					},
+					error: function (error) {
+						alert("삭제 실패");
+					}
+				});
+
+			} else {
+				alert("삭제할 항목을 선택하세요.");
+			}
+
+
+		}
+
+		$(document).ready(function () {
+
+			$('#checkout-selected').click(function () {
+				checkoutSelectedItems();
+			});
+
+
+			$('button.update-quantity').click(function () {
+				var productInputId = $(this).data('product-id');
+				var productid = $('#' + productInputId).val();
+				var quantityInputId = $(this).data('quantity-id');
+				var quantity = $('#' + quantityInputId).val();
+				var itemId = $(this).data('item-id');
+				var colorInputId = $(this).data('color-id');
+				var colorId = $('#' + colorInputId).val();;
+				var sizeInputId = $(this).data('size-id');
+				var sizeId = $('#' + sizeInputId).val();;
+
+				// updateQuantity 함수 호출
+				updateQuantity(itemId, quantity, productid, colorId, sizeId);
+			});
+
+
+			$('button.delete-item').click(function () {
+				var productInputId = $(this).data('product-id');
+				var productid = $('#' + productInputId).val();
+				var itemId = $(this).data('item-id');
+				var colorInputId = $(this).data('color-id');
+				var colorId = $('#' + colorInputId).val();;
+				var sizeInputId = $(this).data('size-id');
+				var sizeId = $('#' + sizeInputId).val();;
+				deleteItem(itemId, productid, colorId, sizeId);
+			});
+			$('#delete-selected').click(function () {
+				deleteSelectedItems();
+			});
+			// 전체 선택/해제 체크박스 이벤트 핸들러
+			$('#select-all').change(function () {
+				var isChecked = $(this).is(':checked');
+				$('.item-checkbox').prop('checked', isChecked);
+			});
+
+			// 개별 항목 체크박스 변경시 전체 선택 체크박스 상태 업데이트
+			$('.item-checkbox').change(function () {
+				var allChecked = $('.item-checkbox').length === $('.item-checkbox:checked').length;
+				$('#select-all').prop('checked', allChecked);
+			});
+		});
+	</script>
+
+	<script>
+		$(document).ready(function () {
+			$('.swiper-container').each(function (index) {
+				new Swiper(this, {
+					loop: true,
+					centeredSlides: true,
+					speed: 2000,
+					autoplay: {
+						delay: 0,
+						disableOnInteraction: false,
+					},
+					slidesPerView: 1,
+				});
+			});
+		});
+	</script>
+
+</body>
+
+</html>

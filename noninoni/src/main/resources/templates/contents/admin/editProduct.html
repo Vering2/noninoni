@@ -1,0 +1,388 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<style>
+		.swiper-slide {
+			flex: 0 0 50%;
+			/* 모바일 화면에서 기본적으로 한 줄에 하나 */
+			max-width: 50%;
+			/* 모바일 화면에서 기본적으로 한 줄에 하나 */
+		}
+
+		/* 데스크탑 화면에서 한 줄에 네 개가 나오게 하는 미디어 쿼리 */
+		@media (min-width: 768px) {
+			.swiper-slide {
+				flex: 0 0 25%;
+				/* 데스크탑에서는 한 줄에 네 개 */
+				max-width: 25%;
+				/* 데스크탑에서는 한 줄에 네 개 */
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div>
+		<!-- header를 포함하는 부분 -->
+		<th:block th:replace="~{fragments/header}"></th:block>
+		<h2>상품 수정</h2>
+		<form th:action="@{/admin/product/edit/{id}(id=${product.id})}" th:object="${product}" method="post"
+			enctype="multipart/form-data" onsubmit="return validateAndSubmitForm(this)">
+			<label for="id">제품번호</label>
+			<input type="text" th:field="*{id}" readonly />
+
+			<!-- Name -->
+			<label for="name">제품명</label>
+			<input type="text" id="name" th:field="*{name}" />
+
+			<!-- Price -->
+			<label for="price">가격</label>
+			<input type="text" id="price" th:field="*{price}" />
+
+			<!-- Description -->
+			<label for="description">설명</label>
+			<textarea id="description" th:field="*{description}"></textarea>
+
+			<!-- Category -->
+			<label for="category">카테고리</label>
+			<select id="category" name="category">
+				<option value="" selected="selected">- 카테고리 선택 -</option>
+				<option th:each="cat : ${categories}" th:value="${cat.type}" th:text="${cat.type}"
+					th:selected="${cat.type == product.category}">
+					카테고리
+				</option>
+
+			</select>
+
+			<!-- MainCategory -->
+			<label for="mainCategory">메인 카테고리</label>
+			<select id="mainCategory" name="mainCategory">
+				<option value="" selected="selected">- 메인 카테고리 선택 -</option>
+				<option th:each="mainCategory : ${mainCategories}" th:value="${mainCategory.type}"
+					th:text="${mainCategory.type}" th:selected="${mainCategory.type == product.mainCategory}">
+					MainCategory Name
+				</option>
+			</select>
+
+			<div id="variants">
+				<label for="category">상품 옵션</label>
+				<table style="width: 100%;">
+					<colgroup>
+						<col style="width:30px;">
+						<col style="width:25%;">
+						<col style="width:25%;">
+						<col style="width:25%;">
+						<col style="width:25%;">
+					</colgroup>
+					<thead>
+						<tr>
+							<th><input type="checkbox" id="selectAllVariants" onclick="toggleAllVariants(this)" /></th>
+							<th>색상</th>
+							<th>사이즈</th>
+							<th>추가금액</th>
+							<th>수량</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="variant, iterStat : ${variants}">
+							<td>
+								<input type="checkbox" th:id="'deleteVariant' + ${iterStat.index}"
+									th:value="${variant.id}" />
+								<input type="hidden" th:name="'variantIds[]'" th:value="${variant.id}" />
+							</td>
+							<td>
+								<select th:name="'colors[]'">
+									<option th:each="color : ${colors}" th:value="${color.id}"
+										th:selected="${color.id == variant.color.id}" th:text="${color.name}"></option>
+								</select>
+							</td>
+							<td>
+								<select th:name="'sizes[]'">
+									<option th:each="size : ${sizes}" th:value="${size.id}"
+										th:selected="${size.id == variant.size.id}" th:text="${size.name}"></option>
+								</select>
+							</td>
+							<td>
+								<input type="number" th:name="'additionalPrices[]'"
+									th:value="${variant.additionalPrice}" />
+							</td>
+							<td>
+								<input type="number" th:name="'quantities[]'" th:value="${variant.stockQuantity}" />
+							</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<button type="button" onclick="deleteSelectedVariants()">선택 옵션 삭제</button>
+
+				<!-- 새로운 상품 변형 추가 버튼 -->
+				<label for="category">옵션 추가</label>
+
+			</div>
+			<button type="button" onclick="addVariant()">상품 옵션 추가</button>
+
+			<!-- Main Images -->
+			<label>메인 이미지</label>
+			<div id="mainImages">
+				<!-- 기존 이미지 표시 -->
+				<div style="display: flex; flex-wrap: wrap; width: 100%;">
+					<div th:each="url, iterStat : ${#strings.arraySplit(product.mainimageUrl, ',')}"
+						th:id="'image-container-' + ${iterStat.index}" class="swiper-slide">
+						<img style="width: 100%;" th:src="@{/uploaded_files/product/{url}(url=${url})}"
+							alt="Main Image">
+						<button type="button" th:data-index="${iterStat.index}" th:data-url="${url}"
+							onclick="removeImage(this)">삭제</button>
+					</div>
+				</div>
+				<!-- 새로운 이미지 업로드 입력 필드 -->
+			</div>
+			<button type="button" onclick="addInputFile('mainImages')">사진 추가</button>
+
+			<!-- Sub Images -->
+			<label>서브 이미지</label>
+			<div id="subImages">
+				<!-- 기존 이미지 표시 -->
+				<div style="display: flex; flex-wrap: wrap; width: 100%;">
+					<div th:each="url, iterStat : ${#strings.arraySplit(product.subimageUrl, ',')}"
+						th:id="'image-container-' + ${iterStat.index}" class="swiper-slide">
+						<img style="width: 100%;" th:src="@{/uploaded_files/product/{url}(url=${url})}" alt="Sub Image">
+						<button type="button" th:data-index="${iterStat.index}" th:data-url="${url}"
+							onclick="removeImage(this)">삭제</button>
+					</div>
+				</div>
+				<!-- 새로운 이미지 업로드 입력 필드 -->
+			</div>
+			<button type="button" onclick="addInputFile('subImages')">사진 추가</button>
+
+
+
+
+			<label for="status">상태</label>
+			<select id="status" th:field="*{status}">
+				<option value="AVAILABLE">판매 가능</option>
+				<option value="OUT_OF_STOCK">재고 부족</option>
+				<option value="DISCONTINUED">판매 중단</option>
+			</select>
+
+			<input style="width: 100%; background-color: black; color: white; font-size: 19px;" type="submit"
+				value="수정" />
+		</form>
+	</div>
+	<button type="button" id="deleteProductButton">상품 삭제</button>
+	<button id="goToProductsButton">상품 목록</button>
+
+	<div id="colorData" th:data-colors="${colorsJson}" style="display:none;"></div>
+	<div id="sizeData" th:data-sizes="${sizesJson}" style="display:none;"></div>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+
+	<script>
+		var colorsData = JSON.parse(document.getElementById('colorData').getAttribute('data-colors'));
+		var sizesData = JSON.parse(document.getElementById('sizeData').getAttribute('data-sizes'));
+
+		function addVariant() {
+			var variantsContainer = document.getElementById('variants');
+			var variantDiv = document.createElement("div");
+			variantDiv.className = "variant";
+
+			// 색상 선택
+			var colorSelect = document.createElement("select");
+			colorSelect.name = "colors[]";
+			colorsData.forEach(function (color) {
+				colorSelect.appendChild(createOption(color.id, color.name));
+			});
+
+			// 사이즈 선택
+			var sizeSelect = document.createElement("select");
+			sizeSelect.name = "sizes[]";
+			sizesData.forEach(function (size) {
+				sizeSelect.appendChild(createOption(size.id, size.name));
+			});
+
+			// 추가 금액 입력 필드
+			var additionalPriceInput = document.createElement("input");
+			additionalPriceInput.type = "number";
+			additionalPriceInput.name = "additionalPrices[]";
+			additionalPriceInput.placeholder = "추가 금액";
+
+			// 수량 입력
+			var quantityInput = document.createElement("input");
+			quantityInput.type = "number";
+			quantityInput.name = "quantities[]";
+			quantityInput.placeholder = "수량";
+
+
+
+			variantDiv.appendChild(colorSelect);
+			variantDiv.appendChild(sizeSelect);
+			variantDiv.appendChild(additionalPriceInput);
+			variantDiv.appendChild(quantityInput);
+
+			variantsContainer.appendChild(variantDiv);
+		}
+
+		function createOption(value, text) {
+			var option = document.createElement("option");
+			option.value = value;
+			option.textContent = text;
+			return option;
+		}
+	</script>
+	<script>
+		document.getElementById('deleteProductButton').addEventListener('click', function () {
+			if (confirm('이 상품을 정말 삭제하시겠습니까?')) {
+				var productId = document.querySelector('input[name="id"]').value;
+				deleteProduct(productId);
+			}
+		});
+
+		function deleteProduct(productId) {
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", "/admin/product/delete", true);
+			xhr.setRequestHeader("Content-Type", "application/json");
+			xhr.onreadystatechange = function () {
+				if (this.readyState === XMLHttpRequest.DONE) {
+					if (this.status === 200) {
+						alert('상품이 삭제되었습니다.');
+						window.history.back(); // 이전 페이지로 이동
+					} else {
+						alert('상품 삭제에 실패했습니다.');
+					}
+				}
+			}
+			xhr.send(JSON.stringify({id: productId}));
+		}
+
+	</script>
+	<script>
+		function removeImage(button) {
+			var imageIndex = button.getAttribute('data-index');
+			var imageUrl = button.getAttribute('data-url');
+			var productId = document.querySelector('input[name="id"]').value;
+			if (!confirm("이 이미지를 삭제하시겠습니까?")) {
+				return;
+			}
+
+			var xhr = new XMLHttpRequest();
+			xhr.open("POST", "/admin/delete-image", true);
+			xhr.setRequestHeader("Content-Type", "application/json");
+			xhr.onreadystatechange = function () {
+				if (this.readyState === XMLHttpRequest.DONE) {
+					if (this.status === 200) {
+						// 서버에서 이미지 삭제 성공. 이미지를 포함하는 DOM 요소 제거
+						var imageContainer = document.getElementById('image-container-' + imageIndex);
+						imageContainer.parentNode.removeChild(imageContainer);
+					} else {
+						alert("삭제 실패: " + this.statusText);
+					}
+				}
+			}
+			xhr.send(JSON.stringify({imageUrl: imageUrl, productId: productId}));
+		}
+
+	</script>
+
+	<script>
+		document.getElementById('goToProductsButton').addEventListener('click', function () {
+			window.location.href = '/admin/product/list';
+		});
+	</script>
+
+
+
+	<script>
+		function toggleAllVariants(source) {
+			var checkboxes = document.querySelectorAll('#variants input[type="checkbox"]');
+			checkboxes.forEach(function (checkbox) {
+				checkbox.checked = source.checked;
+			});
+		}
+		function deleteSelectedVariants() {
+			var checkboxes = document.querySelectorAll('#variants input[type="checkbox"]:checked');
+			var variantIdsToDelete = Array.from(checkboxes).map(function (checkbox) {
+				return checkbox.value;
+			});
+
+			// 모든 삭제 요청이 완료됐는지 추적하기 위한 카운터
+			var completedRequests = 0;
+
+			variantIdsToDelete.forEach(function (variantId) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/admin/delete-variant", true);
+				xhr.setRequestHeader("Content-Type", "application/json");
+				xhr.onreadystatechange = function () {
+					if (this.readyState === XMLHttpRequest.DONE) {
+						completedRequests++;
+						if (completedRequests === variantIdsToDelete.length) {
+							// 모든 요청이 완료되면 페이지 새로고침
+							window.location.reload();
+						}
+					}
+				};
+				xhr.send(JSON.stringify({variantId: variantId}));
+			});
+		}
+	</script>
+
+
+
+
+
+
+	<!-- 필요한 CSS 및 JavaScript 포함 -->
+	<script type="text/javascript">
+		function addInputFile(containerId) {
+			var container = document.getElementById(containerId);
+			var input = document.createElement("input");
+			input.type = "file";
+			input.name = containerId + "[]";
+			input.accept = "image/*"; // 이미지만 허용
+			container.appendChild(input);
+		}
+
+		function validateAndSubmitForm(form) {
+			// 모든 파일 입력 필드를 순회
+			var fileInputs = form.querySelectorAll('input[type="file"]');
+			fileInputs.forEach(function (input) {
+				// 파일이 선택되지 않은 경우, 해당 필드 제거
+				if (input.files.length === 0) {
+					input.parentNode.removeChild(input);
+				}
+			});
+			var price = form["price"].value;
+			if (isNaN(price) || price.trim() === "") {
+				alert("가격은 숫자여야 합니다.");
+				return false;
+			}
+			var variants = document.querySelectorAll('.variant');
+			for (var i = 0; i < variants.length; i++) {
+				var color = variants[i].querySelector('select[name="colors[]"]').value;
+				var size = variants[i].querySelector('select[name="sizes[]"]').value;
+				var quantity = variants[i].querySelector('input[name="quantities[]"]').value;
+
+				// 추가금액 입력 필드 값이 비어있을 경우 0으로 초기화
+				var additionalPriceInput = variants[i].querySelector('input[name="additionalPrices[]"]');
+				if (!additionalPriceInput.value.trim()) {
+					additionalPriceInput.value = 0;
+				}
+
+
+				if (!color || !size || !quantity) {
+					alert('모든 상품 옵션 필드를 채워주세요.');
+					return false;
+				}
+			}
+			return true; // 폼 제출 계속 진행
+		}
+	</script>
+
+
+
+</body>
+
+</html>

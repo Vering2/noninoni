@@ -1,0 +1,111 @@
+<!-- Home.html -->
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+</head>
+
+<body>
+	<table>
+		<!-- header를 포함하는 부분 -->
+		<th:block th:replace="~{fragments/header}"></th:block>
+		<h2>마이페이지</h2>
+
+		<div style="display: flex; justify-content: space-between; align-items: center;">
+			<h3 th:text="${userName + '님의 주문 현황 최근 3개월'}" style="margin: 0; border: 0px;"></h3>
+
+			<h3 style="margin: 0; border: 0px;"><a href="/password-confirmation">수정<i class="fa-solid fa-gear"
+						style="font-size: 20px;"></i></a></h3>
+		</div>
+		<table class="mypage">
+			<colgroup>
+				<col style="width: 25%;">
+				<col style="width: 25%;">
+				<col style="width: 25%;">
+				<col style="width: 25%;">
+			</colgroup>
+			<!-- 배송 상태 관련 행 -->
+			<tr>
+				<td><a href="/orders?orderStatus=PAYMENT_PENDING&startDate=&endDate=&period=3months">입금전<span
+							class="count">[[' ' + ${PAYMENT_PENDING_count}]]</span></a></td>
+				<td><a href="/orders?orderStatus=PREPARING_SHIPMENT&startDate=&endDate=&period=3months">배송준비중<span
+							class="count">[[' ' + ${PREPARING_SHIPMENT_count}]]</span></a></td>
+				<td><a href="/orders?orderStatus=SHIPPED&startDate=&endDate=&period=3months">배송중<span class="count">[['
+							' +
+							${SHIPPED_count}]]</span></a></td>
+				<td><a href="/orders?orderStatus=DELIVERED&startDate=&endDate=&period=3months">배송완료<span
+							class="count">[['
+							' + ${DELIVERED_count}]]</span></a></td>
+			</tr>
+		</table>
+		<table> <!-- 주문 상태 관련 행 -->
+			<colgroup>
+				<col style="width: 25%;">
+				<col style="width: 25%;">
+				<col style="width: 25%;">
+				<col style="width: 25%;">
+			</colgroup>
+			<tr>
+				<td><a href="/orders?orderStatus=RETURNED&startDate=&endDate=&period=3months">반품<span class="count">[['
+							' +
+							${RETURNED_count}]]</span></a></td>
+				<td><a href="/orders?orderStatus=CANCELED&startDate=&endDate=&period=3months">취소<span class="count">[['
+							' +
+							${CANCELED_count}]]</span></a></td>
+				<td><a href="/orders?orderStatus=EXCHANGED&startDate=&endDate=&period=3months">교환<span class="count">[['
+							' +
+							${EXCHANGED_count}]]</span></a></td>
+				<td><a href="/orders?orderStatus=EXCHANGED_DELIVERED&startDate=&endDate=&period=3months">교환완료<span
+							class="count">[[' ' +
+							${EXCHANGED_DELIVERED_count}]]</span></a></td>
+
+
+			</tr>
+		</table>
+		<table>
+
+			<!-- 총 주문 관련 행 -->
+			<tr>
+				<td colspan="4">
+					<a href="/orders">총 주문<span class="count">[[' ' +${orderCount} + '회']]</span></a>
+				</td>
+			</tr>
+			<!-- 총 주문 관련 행 -->
+			<tr>
+				<td colspan="4">
+					<a href="/orders">결제 완료 금액<span class="count">[[' ' + ${#numbers.formatInteger(totalAmount, 0,
+							'COMMA')}
+							+
+							'원']]</span></a>
+				</td>
+			</tr>
+		</table>
+		<table>
+
+			<!-- 리뷰 목록 관련 행 -->
+			<tr>
+				<td colspan="4">
+					<button type="button" onclick="location.href='/reviews/my'">내 리뷰 목록</button>
+				</td>
+			</tr>
+			<!-- 배송지 목록 관련 행 -->
+			<tr>
+				<td colspan="4">
+					<button type="button" onclick="location.href='/shippingaddress'">배송지 관리</button>
+				</td>
+			</tr>
+
+
+		</table>
+		<div style="bottom: 0;">
+			<th:block th:replace="~{fragments/footer}"></th:block>
+		</div>
+
+
+
+</body>
+
+</html>

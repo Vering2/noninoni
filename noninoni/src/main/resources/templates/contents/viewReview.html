@@ -1,0 +1,142 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<style>
+		.image-container {
+			flex: 0 0 50%;
+			/* 모바일 화면에서 기본적으로 한 줄에 하나 */
+			max-width: 50%;
+			/* 모바일 화면에서 기본적으로 한 줄에 하나 */
+		}
+
+		/* 데스크탑 화면에서 한 줄에 네 개가 나오게 하는 미디어 쿼리 */
+		@media (min-width: 768px) {
+			.image-container {
+				flex: 0 0 25%;
+				/* 데스크탑에서는 한 줄에 네 개 */
+				max-width: 25%;
+				/* 데스크탑에서는 한 줄에 네 개 */
+			}
+		}
+	</style>
+
+</head>
+
+<body>
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<div>
+		<h2>리뷰 상세정보</h2>
+		<table>
+			<colgroup>
+				<col style="width: 50px;">
+			</colgroup>
+			<tr>
+				<th>작성일</th>
+				<td>[[${#temporals.format(review.createdDate, 'yyyy년 MM월 dd일 a hh시 mm분')}]]</td>
+			</tr>
+			<tr>
+				<th>제목</th>
+				<td th:text="${review.titleName}"></td>
+			</tr>
+			<tr>
+				<th>내용</th>
+				<td th:text="${review.text}"></td>
+			</tr>
+			<tr>
+				<th>사진</th>
+				<td>
+					<div style="display: flex; flex-wrap: wrap;">
+						<div th:each="url : ${#strings.arraySplit(review.imageUrl, ',')}" class="image-container">
+							<img style="width: 100%;" th:src="@{'/uploaded_files/review/' + ${url}}"
+								alt="Slide Image" />
+						</div>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th>별점</th>
+				<td>
+					<div id="rating" th:data-rating="${review.rating}">
+						<span class="star" data-value="1"><i class="fa-regular fa-star"></i></span>
+						<span class="star" data-value="2"><i class="fa-regular fa-star"></i></span>
+						<span class="star" data-value="3"><i class="fa-regular fa-star"></i></span>
+						<span class="star" data-value="4"><i class="fa-regular fa-star"></i></span>
+						<span class="star" data-value="5"><i class="fa-regular fa-star"></i></span>
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<div>
+		<h2>주문 정보</h4>
+			<table>
+				<tr>
+					<th>상품명</th>
+					<td th:text="${review.orderInfo.productName}"></td>
+				</tr>
+				<tr>
+					<th>색상</th>
+					<td th:text="${review.orderInfo.variant.color.name}"></td>
+				</tr>
+				<tr>
+					<th>사이즈</th>
+					<td th:text="${review.orderInfo.variant.size.name}"></td>
+				</tr>
+				<tr>
+					<th>수량</th>
+					<td th:text="${review.orderInfo.quantity} + '개'"></td>
+				</tr>
+				<tr>
+					<th>가격</th>
+					<td th:text="${#numbers.formatInteger(review.orderInfo.price, 0, 'COMMA')} + '원'"></td>
+				</tr>
+				<!-- 기타 주문 정보 필드 추가 -->
+			</table>
+	</div>
+
+
+
+	<button type="button" class="edit-btn" th:attr="onclick=|location.href='/edit-review/' + ${review.id}|">리뷰
+		수정</button>
+
+
+
+	<button th:if="${not #lists.contains(userRole, '[ROLE_ADMIN]')}" id="goToOrdersButton">주문 목록</button>
+	<button th:if="${#lists.contains(userRole, '[ROLE_ADMIN]')}" id="goToAdminOrdersButton">주문 관리</button>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+	<script>
+		document.getElementById('goToOrdersButton').addEventListener('click', function () {
+			window.location.href = '/orders';
+		});
+	</script>
+	<script>
+		document.getElementById('goToAdminOrdersButton').addEventListener('click', function () {
+			window.location.href = '/admin/orders';
+		});
+	</script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var ratingElement = document.getElementById('rating');
+			var currentRating = ratingElement.getAttribute('data-rating') || 0;
+
+
+			var stars = document.querySelectorAll('#rating .star');
+			updateStars(currentRating);
+
+			function updateStars(rating) {
+				stars.forEach(function (star, index) {
+					star.querySelector('i').className = index < rating ? 'fa-solid fa-star' : 'fa-regular fa-star';
+				});
+			}
+		});
+	</script>
+
+</body>
+
+</html>

@@ -1,0 +1,841 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>Insert title here</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<style>
+		/* 모달 스타일 */
+		.modal {
+			-webkit-font-smoothing: antialiased;
+			-webkit-text-size-adjust: none;
+			word-wrap: break-word;
+			border-spacing: 0;
+			border-collapse: collapse;
+			color: #222;
+			font-size: 10px;
+			line-height: 15px;
+			-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+			z-index: 1000;
+			text-align: left;
+			letter-spacing: normal;
+			background-color: #fff;
+			position: absolute;
+			margin: 0;
+			border: 1px solid #ccc;
+			border-radius: 2px;
+			box-shadow: 3px 3px 3px 0px rgba(0, 0, 0, 0.15);
+			width: 315px;
+			word-break: keep-all;
+			padding: 10px;
+			display: none;
+
+		}
+
+
+		#map {
+			width: 100%;
+			height: 400px;
+			display: none;
+		}
+	</style>
+
+</head>
+
+
+<body>
+	<!-- header를 포함하는 부분 -->
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<!-- 비밀번호 조건 모달 -->
+	<div id="passwordModal" class="modal">
+		<strong style="color: #f45b55;">※ 비밀번호 입력 조건</strong>
+		<ul style="color: #757575;">
+			대소문자/숫자/특수문자를 조합, 10자~16자<br>
+			입력 가능 특수문자: ~ ` ! @ # $ % ^ ( ) * _ - = { } [ ] | ; : &lt; &gt; , . ? /<br>
+			공백 입력 불가능<br>
+			동일한 문자, 숫자를 반복해서 사용 불가능<br>
+			아이디 포함 불가능<br>
+		</ul>
+	</div>
+	<h2 class="title" style=" padding-block: 5px;">회원 가입</h2>
+
+
+	<form action="/signup" method="post" enctype="multipart/form-data" id="registrationForm">
+		<div style="    width: calc(100% - 2px);
+    display: flex;
+   align-items: center; justify-content: space-between; ">
+			<h3 style="float: left; border: 0;">기본정보</h3>
+			<h5 style="float: right; color: red;"><i class="fa-solid fa-check"
+					style="font-size: 20px; color: red;"></i>필수</h5>
+		</div>
+		<table>
+			<colgroup>
+				<col style="width:100px;">
+				<col style="width:auto;">
+			</colgroup>
+			<tr>
+				<th scope="row" style="float: left; ">아이디<i class="fa-solid fa-check"
+						style="font-size: 20px; color: red;"></i>
+				</th>
+				<td>
+					<input name="memberId" id="memberId" fw-label="아이디" fw-msg="" class="inputTypeText" placeholder=""
+						value="" maxlength="16" type="text">
+
+				</td>
+			</tr>
+			<tr>
+				<th></th>
+				<td id="idMsg" style="float: left; color: red;"></td>
+			</tr>
+
+			<tr>
+				<th scope="row" style="float: left;">비밀번호<i class="fa-solid fa-check"
+						style="font-size: 20px; color: red;"></i>
+				</th>
+				<td>
+					<input name="password" id="password" fw-label="비밀번호" fw-msg="" class="inputTypeText" placeholder=""
+						value="" type="password" maxlength="16" onfocus="showPasswordConditions()"
+						oninput="validatePassword()">
+
+				</td>
+
+			</tr>
+			<tr>
+				<th></th>
+				<td id="passwordMsg" style="float: left; color: red;"></td>
+			</tr>
+			<tr>
+				<th scope="row" style="float: left;">비밀번호 확인<i class="fa-solid fa-check"
+						style="font-size: 20px; color: red;"></i>
+				</th>
+				<td>
+					<input name="confirmPassword" id="confirmPassword" fw-label="비밀번호 확인" fw-msg=""
+						class="inputTypeText" maxlength="16" placeholder="" value="" type="password"
+						oninput="validatePassword()">
+
+				</td>
+			</tr>
+			<tr>
+				<th></th>
+				<td id="passwordMatchMsg" style="float: left; color: red;"></td>
+			</tr>
+			<tr>
+				<th scope="row" style="float: left;">이름<i class="fa-solid fa-check"
+						style="font-size: 20px; color: red;"></i></th>
+				<td>
+					<input name="name" id="name" fw-label="이름" fw-msg="" class="inputTypeText" placeholder="" value=""
+						type="text" maxlength="30">
+
+				</td>
+
+			</tr>
+			<tr>
+				<th></th>
+				<td id="nameMsg" style="float: left; color: red;"></td>
+			</tr>
+
+			<tr>
+				<th scope="row" style="float: left; margin-block: 5px;">주소</th>
+				<td>
+					<input type="text" id="postcode" name="addressPostCode" placeholder="우편번호" readonly
+						style="float: left; width: calc(100% - 107px); margin-block: 2px;">
+					<input type="button" onclick="execDaumPostcode()" value="우편번호 찾기"
+						style="float: left; font-weight: bold; background-color: white; font-size: 12px; margin-left: 5px; width: 100px; height: 20px; margin-block: 2px;"><br>
+					<input type="text" id="roadAddress" name="addressRoad" placeholder="도로명주소"
+						style="float: left; margin-block: 2px;" readonly>
+					<input type="text" id="jibunAddress" placeholder="지번주소" hidden>
+					<span id="guide" style="color:#999;display:none"></span>
+					<input type="text" id="detailAddress" name="addressDetails" placeholder="상세주소"
+						style="float: left; margin-block: 2px;" disabled>
+					<input type="text" id="extraAddress" placeholder="참고항목" hidden>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row" style="float: left;">휴대전화<i class="fa-solid fa-check"
+						style="font-size: 20px; color: red;"></i>
+				</th>
+				<td>
+					<div style="display: flex;     width: calc(100% + 2px);"><select id="mobile1" name="mobile[]"
+							fw-filter="isNumber&amp;isFill" fw-label="휴대전화" fw-alone="N" fw-msg="" style="width: 33%;">
+							<option value="010">010</option>
+							<option value="011">011</option>
+							<option value="016">016</option>
+							<option value="017">017</option>
+							<option value="018">018</option>
+							<option value="019">019</option>
+						</select>-<input id="mobile2" name="mobile[]" maxlength="4" fw-filter="isNumber&amp;isFill"
+							fw-label="휴대전화" fw-alone="N" fw-msg="" placeholder="" value="" type="text"
+							style="width: 33%;">-<input id="mobile3" name="mobile[]" maxlength="4"
+							fw-filter="isNumber&amp;isFill" fw-label="휴대전화" fw-alone="N" fw-msg="" placeholder=""
+							value="" type="text" style="width: 33%;"></div>
+				</td>
+			</tr>
+			<tr>
+				<th></th>
+				<td id="phoneMsg" style="float: left; color: red;"></td>
+			</tr>
+			<tr>
+				<th scope="row" style="float: left;">이메일<i class="fa-solid fa-check"
+						style="font-size: 20px; color: red;"></i></th>
+				<td><input id="email" name="email" fw-filter="isFill&amp;isEmail" fw-label="이메일" fw-alone="N" fw-msg=""
+						placeholder="" value="" type="email" style="float: left; width: 100%; margin-block: 2px;"
+						oninput="checkEmailDuplicate()">
+				</td>
+
+			</tr>
+			<tr>
+				<th></th>
+				<td id="emailMsg" style="float: left; color: red;"></td>
+			</tr>
+
+
+		</table>
+
+		<div style="    width: calc(100% - 2px);
+    display: flex;
+   align-items: center; justify-content: space-between; ">
+			<h3 style="float: left; border: 0;">환불계좌</h3>
+		</div>
+		<div class="ec-base-table typeWrite gClearBorderTop  ">
+			<table>
+				<colgroup>
+					<col style="width:100px;">
+					<col style="width:auto;">
+				</colgroup>
+				<tbody>
+					<tr class="">
+						<th scope="row" style="float: left;">예금주 </th>
+						<td><input id="bank_account_owner" name="bankAccountOwner" fw-filter="" fw-label="예금주" fw-msg=""
+								class="inputTypeText" placeholder="" autocomplete="off" value="" type="text">
+						</td>
+					</tr>
+					<tr>
+						<th></th>
+						<td id="ownerMsg" style="float: left; color: red;"></td>
+					</tr>
+					<tr class="">
+						<th scope="row" style="float: left;">은행명 </th>
+						<td><select id="refund_bank_code" name="refundBankCode" fw-filter="" fw-label="은행명" fw-msg="">
+								<option value="" selected="selected">- 은행선택 -</option>
+								<option value="bank_02">산업은행</option>
+								<option value="bank_03">기업은행</option>
+								<option value="bank_04">국민은행</option>
+								<option value="bank_05">하나(외환)은행</option>
+								<option value="bank_07">수협중앙회</option>
+								<option value="bank_11">농협중앙회</option>
+								<option value="bank_12">농협개인</option>
+								<option value="bank_13">농협</option>
+								<option value="bank_20">우리은행</option>
+								<option value="bank_209">유안타증권</option>
+								<option value="bank_218">KB증권</option>
+								<option value="bank_23">SC제일은행</option>
+								<option value="bank_230">미래에셋증권</option>
+								<option value="bank_238">대우증권</option>
+								<option value="bank_240">삼성증권</option>
+								<option value="bank_243">한국투자증권</option>
+								<option value="bank_26">신한은행</option>
+								<option value="bank_261">교보증권</option>
+								<option value="bank_262">하이투자증권</option>
+								<option value="bank_263">현대차증권</option>
+								<option value="bank_266">SK증권</option>
+								<option value="bank_267">대신증권</option>
+								<option value="bank_269">한화증권</option>
+								<option value="bank_270">하나대투증권</option>
+								<option value="bank_278">신한금융투자</option>
+								<option value="bank_279">동부증권</option>
+								<option value="bank_280">유진투자증권</option>
+								<option value="bank_287">메리츠증권</option>
+								<option value="bank_288">카카오페이증권</option>
+								<option value="bank_289">NH투자증권</option>
+								<option value="bank_291">신영증권</option>
+								<option value="bank_292">케이뱅크</option>
+								<option value="bank_293">카카오뱅크</option>
+								<option value="bank_294">LIG증권</option>
+								<option value="bank_295">OK저축은행</option>
+								<option value="bank_296">토스뱅크</option>
+								<option value="bank_297">토스증권</option>
+								<option value="bank_31">대구은행</option>
+								<option value="bank_32">부산은행</option>
+								<option value="bank_34">광주은행</option>
+								<option value="bank_35">제주은행</option>
+								<option value="bank_37">전북은행</option>
+								<option value="bank_39">경남은행</option>
+								<option value="bank_52">모건스탠리은행</option>
+								<option value="bank_53">씨티은행</option>
+								<option value="bank_57">유에프제이은행</option>
+								<option value="bank_58">미즈호코퍼레이트은행</option>
+								<option value="bank_59">미쓰비시도쿄은행</option>
+								<option value="bank_60">뱅크오브아메리카</option>
+								<option value="bank_71">우체국</option>
+								<option value="bank_76">신용보증기금</option>
+								<option value="bank_77">기술신용보증기금</option>
+								<option value="bank_81">하나은행</option>
+								<option value="bank_82">농협회원조합</option>
+								<option value="bank_83">도이치은행</option>
+								<option value="bank_84">상호저축은행</option>
+								<option value="bank_85">새마을금고</option>
+								<option value="bank_86">수출입은행</option>
+								<option value="bank_87">신용협동조합</option>
+								<option value="bank_89">홍콩상하이은행(HSBC)</option>
+								<option value="bank_90">에이비엔암로은행</option>
+								<option value="bank_91">산림조합</option>
+								<option value="bank_93">한국주택금융공사</option>
+								<option value="bank_94">서울보증보험</option>
+								<option value="bank_95">경찰청</option>
+								<option value="bank_99">금융결제원</option>
+								<option value="bank_999">기타</option>
+							</select></td>
+					</tr>
+					<tr class="">
+						<th scope="row" style="float: left;">계좌번호 </th>
+						<td><input id="bank_account_no" name="bankAccountNo" fw-filter="" fw-label="계좌번호" fw-msg=""
+								class="inputTypeText" placeholder="" autocomplete="off" value="" type="text"></td>
+					</tr>
+					<tr>
+						<th></th>
+						<td id="numberMsg" style="float: left; color: red;"></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div style="    width: calc(100% - 2px);
+    display: flex;
+   align-items: center; justify-content: space-between; ">
+				<h3 style="float: left; border: 0;">약관</h3>
+
+				<h6 id="privacyPolicyMsg" style="float: left;"></h6>
+			</div>
+			<div style="width: calc(100% - 2px);
+    display: flex;
+    align-items: flex-start;
+    
+    flex-direction: column;">
+				<label>
+					<input type="checkbox" id="privacyPolicyCheckbox" class="checkAll" style="width: auto;">
+					모든 약관 동의
+				</label>
+
+				<label>
+					<input type="checkbox" class="checkbox" id="privacyPolicyCheckbox1" style="width: auto;">
+					<div style="color: red;">[필수]</div>이용약관 동의 <a href="javascript:void(0);"
+						onclick="openPopup1('/agreement1')">전체보기</a>
+				</label>
+
+				<label>
+					<input type="checkbox" class="checkbox" id="privacyPolicyCheckbox2" style="width: auto;">
+					<div style="color: red;">[필수]</div>개인정보처리방침
+					동의
+					<a href="javascript:void(0);" onclick="openPopup2('/agreement2')">전체보기</a>
+				</label>
+			</div>
+			<table>
+				<td>
+					<button type="button" style="width: 100%; height: 50px; font-size: 19px;"
+						onclick="enableSignUpButton()">회원가입하기
+					</button>
+				</td>
+			</table>
+
+
+	</form>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+
+	<script>
+		function openPopup1(url) {
+			// 새로운 창 또는 팝업을 열기
+			window.open(url, '_blank', 'width=1020,height=1080,scrollbars=yes');
+		}
+		function openPopup2(url) {
+			// 새로운 창 또는 팝업을 열기
+			window.open(url, '_blank', 'width=1020,height=519,scrollbars=yes');
+		}
+	</script>
+
+	<script>
+		// 휴대전화 번호 유효성 검사 함수
+		function validatePhoneNumber() {
+			var mobile1 = $("#mobile1").val();
+			var mobile2 = $("#mobile2").val();
+			var mobile3 = $("#mobile3").val();
+
+			// 숫자만 존재하는지 확인
+			var numberPattern = /^\d+$/;
+
+			if (!numberPattern.test(mobile2) || !numberPattern.test(mobile3)) {
+				$("#phoneMsg").css("color", "red").text("휴대전화 번호는 숫자만 입력해야 합니다.");
+				return false;
+			}
+
+			// 중간 번호의 길이가 3자리 이상, 마지막 번호의 길이가 4자리인지 확인
+			if (mobile2.length < 3 || mobile3.length !== 4) {
+				$("#phoneMsg").css("color", "red").text("휴대전화 번호의 중간 부분은 3자리 이상, 마지막 부분은 4자리여야 합니다.");
+				return false;
+			}
+
+			$("#phoneMsg").css("color", "black").text("올바른 휴대전화 번호입니다.");
+			return true;
+		}
+
+		// 휴대전화 입력 필드에 이벤트 리스너 추가
+		$(document).ready(function () {
+			$("#mobile1, #mobile2, #mobile3").on("input", validatePhoneNumber);
+		});
+	</script>
+
+
+
+
+
+	<script>
+		// 이름 입력 시 정규 조건을 만족하는지 검사하는 함수
+		function validateName() {
+			var name = document.getElementById("name").value;
+			// 한글 이름은 2~5자, 영어 이름은 첫 글자 대문자와 나머지 소문자로 구성된 단어 최대 두 개 허용
+			var namePattern = /^(([가-힣]{2,5})|([A-Z][a-z]+(\s[A-Z][a-z]+)?))$/;
+
+			if (!namePattern.test(name)) {
+				$("#nameMsg").css("color", "red").text("이름은 한글 2~5자 또는 영어 이름(첫 글자 대문자, 최대 두 단어)만 가능합니다.");
+				return false;
+			} else {
+				$("#nameMsg").css("color", "black").text("사용 가능한 이름입니다."); // 조건을 만족하면 메시지 표시
+				return true;
+			}
+		}
+
+		// 이름 입력 필드에 이벤트 리스너 추가
+		document.addEventListener("DOMContentLoaded", function () {
+			document.getElementById("name").addEventListener("input", validateName);
+		});
+	</script>
+
+
+
+
+
+
+	<script>
+
+		$(document).ready(function () {
+			// 아이디 입력 필드에 이벤트 리스너를 추가하여 값이 변경될 때마다 두 함수를 실행
+			$("#memberId").on("input", function () {
+				checkDuplicate(); // 아이디 중복 확인
+				checkPassword(); // 비밀번호 검증
+			});
+		});
+		// 아이디 입력 시 중복 확인 수행
+		function checkDuplicate() {
+			var memberId = $("#memberId").val();
+
+			// 정규표현식을 사용하여 아이디 형식 검사
+			var idPattern = /^[a-z0-9]{4,16}$/;
+
+			// 아이디 형식이 맞지 않으면 메시지 표시
+			if (!idPattern.test(memberId)) {
+				$("#idMsg").css("color", "red").text("아이디는 영문 소문자 또는 숫자로 4~16자 입력해 주세요.");
+				return;
+			}
+
+			// 아이디 중복 확인을 위한 AJAX 요청
+			$.ajax({
+				url: "/checkDuplicateId",  // 중복 확인을 처리하는 서버 엔드포인트로 변경해야 함
+				method: "POST",
+				data: {memberId: memberId},
+				success: function (data) {
+					if (data.duplicate) {
+						$("#idMsg").css("color", "red").text("이 아이디는 이미 사용 중입니다.");
+					} else {
+						$("#idMsg").css("color", "black").text("사용 가능한 아이디입니다.");
+					}
+				},
+				error: function () {
+					console.error("중복 확인 요청 실패");
+				}
+			});
+		}
+
+		// 이메일 중복 확인을 위한 AJAX 요청
+		function checkEmailDuplicate() {
+			var email = $('#email').val();
+
+			// 이메일 형식을 검사하는 정규식
+			var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
+			// 이메일 형식이 올바른지 확인
+			if (!emailPattern.test(email)) {
+				$('#emailMsg').css("color", "red").text('잘못된 이메일 형식입니다.');
+				return;
+			}
+
+			// AJAX 요청을 통해 이메일 중복 검사
+			$.ajax({
+				method: 'POST',
+				url: '/checkEmailUnique',
+				data: {email: email},
+				success: function (result) {
+					if (result === true) {
+						$('#emailMsg').css("color", "black").text('사용 가능한 이메일입니다.');
+					} else {
+						$('#emailMsg').css("color", "red").text('중복된 이메일입니다.');
+					}
+				},
+				error: function (error) {
+					console.error('Error checking email uniqueness: ' + error);
+				}
+			});
+		}
+
+
+
+		function validatePassword() {
+			var password = document.getElementById("password").value;
+			var confirmPassword = document.getElementById("confirmPassword").value;
+			var passwordMatchMsg = document.getElementById("passwordMatchMsg");
+
+			// 비밀번호 입력칸이 비어있는 경우 함수를 종료
+			if (password.length === 0) {
+				$("#passwordMatchMsg").text("");
+				return;
+			}
+
+			if (confirmPassword.length === 0) {
+				$("#passwordMatchMsg").text("");
+				return;
+			}
+
+			if (password !== confirmPassword) {
+				$('#passwordMatchMsg').css("color", "red").text('비밀번호가 일치하지 않습니다.');
+			} else {
+				$('#passwordMatchMsg').css("color", "black").text('비밀번호가 일치합니다.');
+			}
+		}
+
+		// 비밀번호 모달 보이기
+		function showPasswordConditions() {
+			var passwordModal = document.getElementById("passwordModal");
+			var passwordInput = document.getElementById("password");
+			// 비밀번호 입력란의 위치와 크기 계산
+			var rect = passwordInput.getBoundingClientRect();
+
+			// 모달의 위치 설정
+			passwordModal.style.display = "block";
+
+			passwordModal.style.top = rect.top + window.scrollY - passwordModal.offsetHeight + "px";
+			passwordModal.style.left = "102px";
+		}
+
+		// 비밀번호 모달 감추기
+		function hidePasswordConditions() {
+			var passwordModal = document.getElementById("passwordModal");
+			passwordModal.style.display = "none";
+		}
+
+		// 문서 로딩 후 이벤트 리스너 등록
+		document.addEventListener("DOMContentLoaded", function () {
+			// 비밀번호 입력란을 클릭할 때 모달을 보이게 함
+			var passwordInput = document.getElementById("password");
+			passwordInput.addEventListener("click", showPasswordConditions);
+
+			// 비밀번호 모달 외부 클릭 시 모달 감추기
+			window.addEventListener("click", function (event) {
+				var passwordModal = document.getElementById("passwordModal");
+				if (event.target !== passwordInput) {
+					hidePasswordConditions();
+				}
+			});
+		});
+
+
+		// 비밀번호 입력 시 이벤트 발생
+		$("#password").on("input", function () {
+			checkPassword();
+		});
+
+
+		function checkPassword() {
+			var password = $("#password").val();
+			var memberId = $("#memberId").val();
+
+			// 비밀번호 입력칸이 비어있는 경우 함수를 종료
+			if (password.length === 0) {
+				$("#passwordMsg").text("");
+				return;
+			}
+
+			// 아이디 입력칸이 비어있는지 확인
+			if (!memberId) {
+				$("#password").val(""); // 비밀번호 입력 필드를 비움
+				$("#passwordMsg").css("color", "red").text("아이디를 먼저 입력해주세요.");
+				return;
+			}
+
+			// 정규표현식을 사용하여 비밀번호 형식 검사
+			var passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[~`!@#\$%\^&\*\(\)_\-\=\{\}\[\]\|;:'"<>,.\/?]).{10,16}$/;
+
+			// 비밀번호 형식이 맞지 않으면 메시지 표시
+			if (!passwordPattern.test(password)) {
+				$("#passwordMsg").text("대소문자/숫자/특수문자를 조합, 10자~16자를 입력해 주세요.");
+				return;
+			}
+
+			// 특수문자가 허용되는지 확인
+			var allowedSpecialChars = /[~`!@#\$%\^&\*\(\)_\-\=\{\}\[\]\|;:'"<>,.\/?]/;
+			if (!allowedSpecialChars.test(password)) {
+				$("#passwordMsg").text("입력 가능한 특수문자: ~ ` ! @ # $ % ^ ( ) * _ - = { } [ ] | ; : '\" < > , . / ?");
+				return;
+			}
+
+			// 공백, 연속된 문자 또는 숫자, 동일한 문자 또는 숫자 반복 사용 여부 확인
+			if (/\s/.test(password) || /(\w)\1/.test(password) || /(\d)\1/.test(password)) {
+				$("#passwordMsg").text("공백, 동일한 문자 또는 숫자를 반복해서 사용할 수 없습니다.");
+				return;
+			}
+
+			// 아이디를 포함하는지 확인
+			if (password.includes(memberId)) {
+				$("#passwordMsg").text("아이디를 포함하면 안됩니다.");
+				return;
+			}
+
+			// 모든 조건이 만족하면 메시지 초기화
+			$("#passwordMsg").css("color", "black").text("사용 가능한 비밀번호입니다.");
+		}
+
+
+		// 회원가입 버튼 활성화 여부 검사 함수
+		function enableSignUpButton() {
+			var idAvailable = $("#idMsg").text() === "사용 가능한 아이디입니다.";
+			var nameAvailable = $("#nameMsg").text() === "사용 가능한 이름입니다.";
+			var passwordMatch = $("#passwordMatchMsg").text() === "비밀번호가 일치합니다.";
+			var passwordConditionsMet = $("#passwordMsg").text() === "사용 가능한 비밀번호입니다.";
+			var emailAvailable = $("#emailMsg").text() === "사용 가능한 이메일입니다.";
+			var phoneAvailable = $("#phoneMsg").text() === "올바른 휴대전화 번호입니다.";
+			var privacyPolicyCheckbox = $("#privacyPolicyCheckbox").prop("checked");
+			var ownerAvailable = $("#ownerMsg").text() === "";
+			var numberAvailable = $("#numberMsg").text() === "";
+
+
+			// 조건이 충족되지 않은 경우 메시지 표시
+			if (!idAvailable) {
+				// 아이디 중복 확인 메시지 표시
+				$("#idMsg").css("color", "red").text("아이디를 다시 확인해주세요.");
+			}
+
+			if (!nameAvailable) {
+				// 아이디 중복 확인 메시지 표시
+				$("#nameMsg").css("color", "red").text("이름을 다시 확인해주세요.");
+			}
+
+
+
+			if (!passwordMatch) {
+				// 비밀번호 일치 메시지 표시
+				$("#passwordMatchMsg").css("color", "red").text("비밀번호가 일치하지 않습니다.");
+			}
+
+			if (!passwordConditionsMet) {
+				// 비밀번호 조건 미충족 메시지 표시
+				$("#passwordMsg").css("color", "red").text("비밀번호 조건을 확인해주세요.");
+			}
+
+			if (!emailAvailable) {
+				// 이메일 중복 확인 메시지 표시
+				$("#emailMsg").css("color", "red").text("이메일을 다시 확인해주세요.");
+			}
+
+			if (!phoneAvailable) {
+				// 이메일 중복 확인 메시지 표시
+				$("#phoneMsg").css("color", "red").text("휴대전화 번호를 다시 확인해주세요.");
+			}
+
+			if (!privacyPolicyCheckbox) {
+				// 약관 동의 체크 안된 경우 메시지 표시
+				$("#privacyPolicyMsg").css("color", "red").text("모든 약관에 동의해야 합니다.");
+			} if (!ownerAvailable) {
+				// 이메일 중복 확인 메시지 표시
+				$("#ownerMsg").css("color", "red").text("예금주명을 다시 확인해주세요.");
+			}
+
+			if (!numberAvailable) {
+				// 이메일 중복 확인 메시지 표시
+				$("#numberMsg").css("color", "red").text("계좌번호를 다시 확인해주세요.");
+			}
+
+			else {
+				// 약관 동의 체크 된 경우 메시지 초기화
+				$("#privacyPolicyMsg").text("");
+			}
+
+			// 모든 조건이 충족되면 form을 제출
+			if (idAvailable && ownerAvailable && numberAvailable && phoneAvailable && nameAvailable && passwordMatch && passwordConditionsMet && emailAvailable && privacyPolicyCheckbox) {$("#registrationForm").submit();}
+
+
+		}
+
+
+	</script>
+
+
+	<script>
+		//본 예제에서는 도로명 주소 표기 방식에 대한 법령에 따라, 내려오는 데이터를 조합하여 올바른 주소를 구성하는 방법을 설명합니다.
+		function execDaumPostcode() {
+			new daum.Postcode({
+				oncomplete: function (data) {
+					// 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+
+					// 도로명 주소의 노출 규칙에 따라 주소를 표시한다.
+					// 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+					var roadAddr = data.roadAddress; // 도로명 주소 변수
+					var extraRoadAddr = ''; // 참고 항목 변수
+
+					// 법정동명이 있을 경우 추가한다. (법정리는 제외)
+					// 법정동의 경우 마지막 문자가 "동/로/가"로 끝난다.
+					if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+						extraRoadAddr += data.bname;
+					}
+					// 건물명이 있고, 공동주택일 경우 추가한다.
+					if (data.buildingName !== '' && data.apartment === 'Y') {
+						extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+					}
+					// 표시할 참고항목이 있을 경우, 괄호까지 추가한 최종 문자열을 만든다.
+					if (extraRoadAddr !== '') {
+						extraRoadAddr = ' (' + extraRoadAddr + ')';
+					}
+
+					// 우편번호와 주소 정보를 해당 필드에 넣는다.
+					document.getElementById('postcode').value = data.zonecode;
+					document.getElementById("roadAddress").value = roadAddr;
+					document.getElementById("jibunAddress").value = data.jibunAddress;
+
+					var detailAddressInput = document.getElementById("detailAddress");
+
+
+					// 도로명 주소가 입력되었다면 상세주소 입력란을 활성화
+					detailAddressInput.disabled = false;
+
+					// 참고항목 문자열이 있을 경우 해당 필드에 넣는다.
+					if (roadAddr !== '') {
+						document.getElementById("extraAddress").value = extraRoadAddr;
+					} else {
+						document.getElementById("extraAddress").value = '';
+					}
+
+					var guideTextBox = document.getElementById("guide");
+					// 사용자가 '선택 안함'을 클릭한 경우, 예상 주소라는 표시를 해준다.
+					if (data.autoRoadAddress) {
+						var expRoadAddr = data.autoRoadAddress + extraRoadAddr;
+						guideTextBox.innerHTML = '(예상 도로명 주소 : ' + expRoadAddr + ')';
+						guideTextBox.style.display = 'block';
+
+					} else if (data.autoJibunAddress) {
+						var expJibunAddr = data.autoJibunAddress;
+						guideTextBox.innerHTML = '(예상 지번 주소 : ' + expJibunAddr + ')';
+						guideTextBox.style.display = 'block';
+					} else {
+						guideTextBox.innerHTML = '';
+						guideTextBox.style.display = 'none';
+					}
+				}
+			}).open();
+		}
+	</script>
+
+
+	<script>
+		// 모두 체크 기능을 가진 체크박스
+		const checkAllCheckbox = document.querySelector('.checkAll');
+
+		// 나머지 체크박스들
+		const checkboxes = document.querySelectorAll('.checkbox');
+
+		// 모두 체크 기능을 가진 체크박스의 변경 이벤트 리스너
+		checkAllCheckbox.addEventListener('change', function () {
+			checkboxes.forEach(checkbox => {
+				checkbox.checked = checkAllCheckbox.checked;
+			});
+		});
+
+		// 나머지 체크박스들의 변경 이벤트 리스너
+		checkboxes.forEach(checkbox => {
+			checkbox.addEventListener('change', function () {
+				// 모든 체크박스가 체크되어 있는지 확인
+				const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+				checkAllCheckbox.checked = allChecked;
+			});
+		});
+	</script>
+
+
+	<script>
+		// 예금주 이름 유효성 검사
+		function validateBankAccountOwner() {
+			var owner = document.getElementById("bank_account_owner").value;
+			var ownerMsg = document.getElementById("ownerMsg");
+
+			// 예금주 이름은 한글 또는 영문으로 구성되어야 함
+			var ownerPattern = /^[가-힣a-zA-Z\s]+$/;
+
+			if (owner === "") {
+				ownerMsg.textContent = "";
+				return true;
+
+			}
+
+			if (!ownerPattern.test(owner)) {
+				ownerMsg.textContent = "예금주는 한글 또는 영문 이름만 가능합니다.";
+				return false;
+			} else {
+				ownerMsg.textContent = "";
+				return true;
+			}
+		}
+
+		// 계좌번호 유효성 검사
+		function validateBankAccountNumber() {
+			var number = document.getElementById("bank_account_no").value;
+			var numberMsg = document.getElementById("numberMsg");
+
+			// 계좌번호는 숫자만 가능
+			var numberPattern = /^\d+$/;
+
+			if (number === "") {
+				numberMsg.textContent = "";
+				return true;
+
+			}
+
+			if (!numberPattern.test(number)) {
+				numberMsg.textContent = "계좌번호는 숫자만 입력해야 합니다.";
+				return false;
+			} else {
+				numberMsg.textContent = "";
+				return true;
+			}
+		}
+
+		// 페이지 로드 시 이벤트 리스너 등록
+		document.addEventListener('DOMContentLoaded', function () {
+			// 예금주 입력 필드 이벤트 리스너
+			document.getElementById("bank_account_owner").addEventListener("input", validateBankAccountOwner);
+
+			// 계좌번호 입력 필드 이벤트 리스너
+			document.getElementById("bank_account_no").addEventListener("input", validateBankAccountNumber);
+		});
+	</script>
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

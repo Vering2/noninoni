@@ -1,0 +1,882 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<style>
+		.choose-button {
+			background-color: white;
+			color: black;
+		}
+
+		.button-container {
+			display: flex;
+			/* Flexbox 레이아웃 적용 */
+			justify-content: space-between;
+			/* 버튼 간격 조정 */
+		}
+
+		.button-container button {
+			flex: 1;
+			/* Flexbox 아이템으로서의 비율 설정 */
+			margin: 0px;
+			/* 버튼 사이의 간격 */
+		}
+
+		.swiper-container,
+		.swiper-container-sub {
+			overflow: hidden;
+		}
+
+
+		.content {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100px;
+			height: 100px;
+			/* 컨텐츠 내용 스타일링 */
+		}
+
+		/* Swiper 컨테이너의 크기 조정 */
+		.swiper-container {
+			width: 100px;
+			/* 너비를 100%로 설정 */
+			height: 100px;
+			/* 높이를 300px로 설정 */
+		}
+
+		/* 각 슬라이드 항목의 크기 조정 */
+		.swiper-slide {
+			text-align: center;
+			font-size: 18px;
+			background: #fff;
+
+			/* 슬라이드 항목 내부의 정사각형 컨테이너 크기 조정 */
+			.square-container {
+				width: 100%;
+				/* 너비를 100%로 설정 */
+				height: 100%;
+				/* 높이를 100%로 설정 */
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			/* 이미지 스타일 */
+			img {
+				max-width: 100%;
+				height: auto;
+				border-radius: 10px;
+				/* 이미지의 모서리를 둥글게 */
+			}
+		}
+
+		#omessage_select {
+			text-align-last: center;
+			/* 텍스트를 가운데 정렬 */
+			-moz-text-align-last: center;
+			/* Firefox를 위한 스타일 */
+		}
+	</style>
+
+	<!-- 모달 스타일 -->
+	<style>
+		.modal {
+			display: none;
+			/* 기본적으로 숨겨져 있음 */
+			position: fixed;
+			/* 고정 위치 */
+			z-index: 1;
+			/* 다른 요소 위에 표시 */
+			left: 0;
+			top: 0;
+			width: 100%;
+			/* 전체 너비 */
+			height: 100%;
+			/* 전체 높이 */
+			overflow: auto;
+			/* 스크롤바 추가 */
+			background-color: rgba(0, 0, 0, 0.4);
+			/* 배경 색상 */
+		}
+
+		.modal-content {
+			background-color: #fefefe;
+			/* 배경색 */
+			margin: auto;
+			/* 수직과 수평 가운데 정렬 */
+			padding: 20px;
+			border: 1px solid #888;
+			width: 30%;
+			/* 모달 너비 */
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			/* 모달의 중앙을 기준으로 위치 조정 */
+			transform: translate(-50%, -50%);
+			/* 모달의 중앙을 화면 중앙으로 이동 */
+		}
+	</style>
+
+
+</head>
+
+<body>
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<h2>주문 상세</h2>
+	<!-- 결제 정보 -->
+	<table>
+		<colgroup>
+			<!-- 추가 열 설정 -->
+		</colgroup>
+		<thead>
+			<tr>
+				<th colspan="3">
+					<div style="display: flex; align-items: baseline;">
+						<h3 style="border: 0px;">
+							주문 정보
+						</h3>
+					</div>
+				</th>
+				<!-- 기타 헤더 추가 가능 -->
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>
+					<div style="display: flex; align-items: baseline;">
+						주문번호 [[${order.id}]]
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div style="display: flex; align-items: baseline;">
+						주문일자 [[${#temporals.format(order.paidAt, 'yyyy년 MM월 dd일 a hh시 mm분')}]]
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div style="display: flex; align-items: baseline;">
+						주문자 [[${member.name}]]
+					</div>
+				</td>
+			</tr>
+
+
+		</tbody>
+	</table>
+
+	<!-- 주문 목록 -->
+	<table>
+		<colgroup>
+			<col style="width: 100px;">
+			<col style="width: 70px;">
+			<col style="width: 40px;">
+			<col style="width: 70px;">
+			<col style="width: 70px;">
+			<!-- 추가 열 설정 -->
+		</colgroup>
+		<thead>
+			<tr>
+				<th colspan="5">
+					<div style="display: flex; align-items: baseline;">
+						<h3 style="border: 0px;">
+							주문 상품
+						</h3>
+
+					</div>
+				</th>
+
+				<!-- 기타 헤더 추가 가능 -->
+			</tr>
+		</thead>
+		<tbody th:each="info, iterStat : ${order.orderInfos}">
+			<tr>
+				<th rowspan="2" style="width: 100px;">
+					<div class="swiper-container" th:id="'swiper-' + ${iterStat.index}">
+						<div class="swiper-wrapper">
+							<!-- 슬라이드 항목 -->
+							<div th:each="url : ${#strings.arraySplit(info.variant.product.mainimageUrl, ',')}"
+								class="swiper-slide">
+								<div class="square-container">
+									<div class="content">
+										<picture>
+											<img th:src="@{/uploaded_files/product/{url}(url=${url})}" alt="Slide Image"
+												style="width:100%; height:100%;" decoding="async" loading="lazy">
+										</picture>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</th>
+				<td colspan="2"
+					th:utext="${info.variant.product.name + '&lt;br&gt;' + info.variant.color.name + ' / '+ info.variant.size.name}">
+					<!-- 이 부분에 텍스트와 HTML 태그가 조합된 결과가 출력됩니다. -->
+				</td>
+
+
+				<td style="color: red;" th:id="${iterStat.index}" th:text="${info.orderStatus.getDescription()}"></td>
+				<!-- 택배 조회 버튼, 각 행마다 고유한 ID 부여 -->
+
+				<td rowspan="2">
+					<div
+						th:if="${info.orderStatus.toString() != 'CANCELED' || #lists.contains(userRole, '[ROLE_ADMIN]')}">
+						<button th:if="${info.orderStatus.toString() == 'SHIPPED' || 
+                info.orderStatus.toString() == 'DELIVERED' ||
+                info.orderStatus.toString() == 'EXCHANGED'}" style="width: 60px; margin: 1px; font-size: 14px;"
+							class="trackButton" th:attr="data-track-number=${info.trackNumber}, 
+                 data-order-status=${info.orderStatus.getDescription()},
+                 data-result-id='trackingResult' + ${iterStat.index}">
+							배송조회
+						</button>
+						<!-- 송장 입력 버튼 -->
+						<button th:if="${#lists.contains(userRole, '[ROLE_ADMIN]')}"
+							th:onclick="'inputTrNumber(' + ${info.id} + ')'"
+							style="width: 60px; margin: 1px; font-size: 14px;">송장입력</button>
+						<button th:if="${#lists.contains(userRole, '[ROLE_ADMIN]')}"
+							th:onclick="'showStatusChangeModal(' + ${info.id} + ')'"
+							style="width: 60px; margin: 1px; font-size: 14px;">상태변경</button>
+						<button th:if="${#lists.contains(userRole, '[ROLE_ADMIN]')}"
+							style="width: 60px; margin: 1px; font-size: 14px;"
+							th:onclick="'window.location.href=\'/admin/product/edit/' + ${info.variant.product.id} + '\''">상품수정</button>
+
+						<!-- 구매 확정 버튼 -->
+						<button th:if="${!info.orderConfirm && info.orderStatus.getDescription() == '배송완료'}"
+							th:onclick="'confirmPurchase(' + ${info.id} + ')'"
+							style="width: 60px; margin: 1px; font-size: 14px;">구매확정</button>
+
+						<!-- 리뷰 작성 버튼 -->
+						<button th:if="${info.orderConfirm && info.reviewId == null}"
+							th:onclick="'writeReview(' + ${info.id} + ')'"
+							style="width: 60px; margin: 1px; font-size: 14px;">리뷰작성</button>
+
+						<!-- 리뷰 보기 버튼 -->
+						<button th:if="${info.reviewId != null}" th:data-review-id="${info.reviewId}"
+							onclick="viewReview(this.getAttribute('data-review-id'))"
+							style="width: 60px; margin: 1px; font-size: 14px;">리뷰보기</button>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					[[${#numbers.formatInteger(info.price, 0, 'COMMA')} + '원']]</td>
+				<td th:text="${info.quantity}+'개'"></td>
+				<td>
+					[[${#numbers.formatInteger(info.sumPrice, 0, 'COMMA')} + '원']]</td>
+
+			</tr>
+			<tr>
+				<td colspan="5">
+					<!-- 택배 추적 결과 표시 영역 -->
+					<div th:id="'trackingResult' + ${iterStat.index}"></div>
+				</td>
+			</tr>
+
+		</tbody>
+	</table>
+	<!-- 합계 -->
+	<table>
+		<colgroup>
+		</colgroup>
+		<thead>
+			<tr>
+				<th>
+					<div style="display: flex; align-items: baseline;">
+						<h3 style="border: 0px;">
+							합계
+						</h3>
+					</div>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<th>
+					<div style="display: flex; align-items: baseline;">
+						상품가격 : [[${#numbers.formatInteger(totalPrice, 0, 'COMMA')} + '원']] + 배송비 :
+						[[${#numbers.formatInteger(shippingCost, 0, 'COMMA')} + '원']] = 최종 금액 :
+						[[${#numbers.formatInteger(finalPrice, 0, 'COMMA')} + '원']]
+					</div>
+
+			</tr>
+		</tbody>
+	</table>
+	<!-- 환불하기 버튼: 입금 전 또는 배송 준비중일 때만 표시 -->
+
+	<!-- 환불 금액과 최대 가능 금액 표시 -->
+	<div th:if="${order.cancelAmount != null}">
+		<H3>총 환불 금액 : [[${#numbers.formatInteger(order.cancelAmount, 0, 'COMMA')} + '원']]</H3>
+		<!-- 환불 가능 금액을 표시할 요소 -->
+		<div id="refundableAmountDisplay"></div>
+	</div>
+
+	<!-- 환불 금액 입력 필드 -->
+	<input type="number" th:if="${#lists.contains(userRole, '[ROLE_ADMIN]')}" id="cancelAmount" min="1"
+		th:attr="max=${order.cancelAmount != null ? finalPrice - order.cancelAmount : finalPrice}" placeholder="금액"
+		required>
+	<!-- 환불 금액 입력 필드 -->
+	<input type="text" id="reason" placeholder="사유" required>
+
+
+	<button th:if="${#lists.contains(userRole, '[ROLE_ADMIN]')}" onclick="refund()">환불하기</button>
+	<button th:if="${(order.status == 'paid' && order.cancellable) || #lists.contains(userRole, '[ROLE_ADMIN]')}"
+		onclick="cancelPay()">구매
+		취소</button>
+	<!-- 결제 정보 -->
+	<table>
+		<colgroup>
+			<!-- 추가 열 설정 -->
+		</colgroup>
+		<thead>
+			<tr>
+				<th colspan="3">
+					<div style="display: flex; align-items: baseline;">
+						<h3 style="border: 0px;">
+							결제 정보
+						</h3>
+					</div>
+				</th>
+				<!-- 기타 헤더 추가 가능 -->
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>
+					<div style="display: flex; align-items: baseline;">
+						결제수단 [[${order.payMethod}]]
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div style="display: flex; align-items: baseline;">
+						결제금액 [[${#numbers.formatInteger(order.paidAmount, 0, 'COMMA')} + '원']]
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<!-- 배송 정보 -->
+	<table>
+		<colgroup>
+			<!-- 추가 열 설정 -->
+		</colgroup>
+		<thead>
+			<tr>
+				<th colspan="3">
+					<div style="display: flex; align-items: baseline;">
+						<h3 style="border: 0px;">
+							배송 정보
+						</h3>
+					</div>
+				</th>
+				<!-- 기타 헤더 추가 가능 -->
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>
+					<div style="display: flex; align-items: baseline;">
+						수령자 [[${order.recipient}]]
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div style="display: flex; align-items: baseline;">
+						주소 [[${order.recaddress}]]
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div style="display: flex; align-items: baseline;">
+						전화번호 [[${order.recphoneNumber}]]
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div style="display: flex; align-items: baseline;">
+						배송메세지 [[${order.omessage}]]
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<button th:if="${not #lists.contains(userRole, '[ROLE_ADMIN]')}" id="goToOrdersButton"
+		onclick="location.href='/orders'">주문 목록</button>
+	<button th:if="${#lists.contains(userRole, '[ROLE_ADMIN]')}" id="goToAdminOrdersButton"
+		onclick="location.href='/admin/orders'">주문 관리</button>
+	
+	<!-- 모달 HTML -->
+	<div id="orderStatusModal" class="modal">
+		<div class="modal-content">
+			<select id="orderStatusSelect">
+				<option th:each="status : ${T(noninoni.entity.OrderStatus).values()}" th:value="${status.name()}"
+					th:text="${status.getDescription()}"></option>
+			</select>
+			<button onclick="confirmOrderStatusChange()">확인</button>
+		</div>
+	</div>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+	
+	
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+
+	<script>
+		var currentOrderInfoId = null;
+		var trackNumber = null;
+		function showStatusChangeModal(orderInfoId) {
+			currentOrderInfoId = orderInfoId;
+			trackNumber = "상태변경";
+			sessionStorage.setItem('trackNumber', trackNumber);
+			showModal();
+		}
+
+		function inputTrNumber(orderInfoId) {
+			currentOrderInfoId = orderInfoId;
+			trackNumber = prompt("송장 번호를 입력하세요:");
+			if (trackNumber) {
+				sessionStorage.setItem('trackNumber', trackNumber);
+				showModal();
+			} else {
+				alert("송장 번호를 입력해주세요.");
+			}
+		}
+
+		function showModal() {
+			var modal = document.getElementById('orderStatusModal');
+			modal.style.display = 'block';
+		}
+
+		function hideModal() {
+			var modal = document.getElementById('orderStatusModal');
+			modal.style.display = 'none';
+		}
+
+		function confirmOrderStatusChange() {
+			var trackNumber = sessionStorage.getItem('trackNumber');
+			var selectedStatus = document.getElementById('orderStatusSelect').value;
+
+
+			$.ajax({
+				url: '/admin/updateOrderStatus',
+				method: 'POST',
+				data: {
+					orderInfoId: currentOrderInfoId,
+					trackNumber: trackNumber,
+					orderStatus: selectedStatus
+				},
+				success: function (response) {
+					alert("업데이트 성공");
+					location.reload();
+				},
+				error: function (xhr, status, error) {
+					alert('오류가 발생했습니다: ' + error);
+				}
+			});
+
+			hideModal();
+		}
+		// 모달 외부 클릭 시 닫기
+		window.onclick = function (event) {
+			var modal = document.getElementById('orderStatusModal');
+			if (event.target == modal) {
+				hideModal();
+			}
+		}
+
+		window.ontouchstart = function (event) {
+			var modal = document.getElementById('orderStatusModal');
+			if (event.target == modal) {
+				hideModal();
+			}
+		}
+
+	</script>
+
+
+
+
+	<script>
+		document.querySelectorAll('.trackButton').forEach(button => {
+			button.addEventListener('click', async function () {
+				const orderStatus = this.getAttribute('data-order-status');
+				const trackNumber = this.getAttribute('data-track-number');
+				const resultDivId = this.getAttribute('data-result-id');
+				// '배송중' 또는 '배송완료'가 아닌 경우
+				if (orderStatus !== "배송중" && orderStatus !== "배송완료" && orderStatus !== "교환") {
+					alert("현재 배송중이 아닙니다.");
+					event.preventDefault(); // 이벤트 중단
+					return;
+				}
+				try {
+					const accessToken = "[[${AccessToken}]]";
+					const trackingData = await fetchTrackingInfo(accessToken, trackNumber);
+					displayTrackingInfo(trackingData, resultDivId);
+				} catch (error) {
+					alert("배송 조회를 실패하였습니다.");
+					console.error('Error:', error);
+				}
+			});
+		});
+
+		async function fetchTrackingInfo(accessToken, trackNumber) {
+			const url = 'https://apis.tracker.delivery/graphql';
+			const query = `query Track($carrierId: ID!, $trackingNumber: String!) {
+                track(carrierId: $carrierId, trackingNumber: $trackingNumber) {
+                    lastEvent {
+                        time
+                        status {
+                            code
+                            name
+                        }
+                        description
+                    }
+                    events(last: 10) {
+                        edges {
+                            node {
+                                time
+                                status {
+                                    code
+                                    name
+                                }
+                                description
+                            }
+                        }
+                    }
+                }
+            }`;
+			const variables = {
+				carrierId: "kr.cjlogistics",
+				trackingNumber: trackNumber
+			};
+
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${accessToken}`
+				},
+				body: JSON.stringify({query, variables})
+			});
+
+			return await response.json();
+		}
+
+		function displayTrackingInfo(data, resultDivId) {
+			let htmlContent = `<div style=" display: flex;
+    align-items: center;
+    text-align: center;"><h2 style=" flex-grow: 1;">배송 이력</h2><button class="closeButton" data-result-div-id="${resultDivId}" style="width:70px; margin-left: auto;"><i class="fa-solid fa-xmark" style="font-size: 20px;"></i></button></div><table>`;
+
+			data.data.track.events.edges.forEach(edge => {
+				const event = edge.node;
+				const eventDate = new Date(event.time);
+				const dateFormatter = new Intl.DateTimeFormat('ko-KR', {
+					year: 'numeric', month: '2-digit', day: '2-digit',
+					hour: '2-digit', minute: '2-digit', hour12: true
+				});
+				const formattedEventTime = dateFormatter.format(eventDate);
+				htmlContent += `<tr><td>${formattedEventTime}</td><td rowspan="2" style="width:70px;">${event.status.name}</td></tr><tr><td>${event.description}<td></tr>`;
+			});
+			htmlContent += '</table>';
+
+			document.getElementById(resultDivId).innerHTML = htmlContent;
+			// 모든 "X" 버튼에 대해 이벤트 리스너 추가
+			document.querySelectorAll('.closeButton').forEach(button => {
+				button.addEventListener('click', function () {
+					const divId = this.getAttribute('data-result-div-id');
+					document.getElementById(divId).innerHTML = '';
+				});
+			});
+		}
+
+
+	</script>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var cancelAmountInput = document.getElementById('cancelAmount');
+			var refundableAmountDisplay = document.getElementById('refundableAmountDisplay');
+
+			function updateRefundableAmount() {
+				var finalPrice = '[[${finalPrice}]]'; // 최종 가격을 어떤 방식으로든 가져오거나 설정합니다.
+				var alreadyCancelledAmount = '[[${order.cancelAmount}]]'; // 이미 취소된 금액을 설정합니다.
+
+				var refundableAmount = finalPrice - alreadyCancelledAmount;
+				refundableAmountDisplay.textContent = '환불 가능 금액: ' + refundableAmount + '원';
+			}
+
+			cancelAmountInput.addEventListener('input', updateRefundableAmount);
+
+			// 초기 환불 가능 금액 계산
+			updateRefundableAmount();
+		});
+
+
+	</script>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		function refund() {
+			var cancelAmountInput = document.getElementById('cancelAmount');
+			var reason = document.getElementById('reason').value;
+			var cancelAmount = parseInt(cancelAmountInput.value, 10);
+			var maxAmount = parseInt(cancelAmountInput.max, 10);
+
+			// 환불 금액이 유효한 범위 내에 있는지 확인
+			if (cancelAmount >= 1 && cancelAmount <= maxAmount) {
+				// 사용자에게 확인 요청
+				var confirmCancel = confirm("정말로 환불 하시겠습니까?");
+
+				// 사용자가 'OK'를 클릭한 경우에만 AJAX 요청 실행
+				if (confirmCancel) {
+					jQuery.ajax({
+						"url": '/cancel',
+						"type": "POST",
+						"contentType": "application/json",
+						"data": JSON.stringify({
+							"id": '[[${order.id}]]',
+							"impUid": '[[${order.impUid}]]',
+							"paidAmount": cancelAmount,
+							"reason": reason,
+							"cancelAmount": maxAmount
+						}),
+						"dataType": "json",
+						"success": function (response) {
+
+							alert("취소 완료");
+							// 페이지 새로고침 또는 UI 업데이트
+							location.reload();
+
+
+							// 성공 처리 로직
+						},
+						"error": function (xhr, status, error) {
+							// 오류 처리 로직
+							alert("취소 실패: " + xhr.responseText);
+							// 페이지 새로고침 또는 UI 업데이트
+							location.reload();
+						}
+					});
+				}
+				console.log("환불 처리: " + cancelAmount);
+			} else {
+				// 유효하지 않은 환불 금액
+				alert("유효하지 않은 환불 금액입니다. 1원이상 " + maxAmount + "원 이하의 금액을 입력해주세요.");
+			}
+		}
+    /*]]>*/
+	</script>
+
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		function cancelPay() {
+			// 사용자에게 확인 요청
+			var reason = document.getElementById('reason').value;
+			var confirmCancel = confirm("정말로 취소하시겠습니까?");
+			var cancelAmountInput = document.getElementById('cancelAmount');
+			var reason = document.getElementById('reason').value;
+			var maxAmount = parseInt(cancelAmountInput.max, 10);
+
+			// 사용자가 'OK'를 클릭한 경우에만 AJAX 요청 실행
+			if (confirmCancel) {
+				jQuery.ajax({
+					"url": '/cancel',
+					"type": "POST",
+					"contentType": "application/json",
+					"data": JSON.stringify({
+						"id": '[[${order.id}]]',
+						"impUid": '[[${order.impUid}]]',
+						"paidAmount": '[[${order.paidAmount}]]',
+						"reason": reason,
+						"cancelAmount": maxAmount
+					}),
+					"dataType": "json",
+					"success": function (response) {
+
+						alert("취소 완료");
+						// 페이지 새로고침 또는 UI 업데이트
+						location.reload();
+
+
+						// 성공 처리 로직
+					},
+					"error": function (xhr, status, error) {
+						// 오류 처리 로직
+						alert("취소 실패: " + xhr.responseText);
+						// 페이지 새로고침 또는 UI 업데이트
+						location.reload();
+					}
+				});
+			}
+		}
+    /*]]>*/
+	</script>
+
+
+
+
+	<script>
+		$(document).ready(function () {
+			$('.swiper-container').each(function (index) {
+				new Swiper(this, {
+					loop: true,
+					centeredSlides: true,
+					speed: 2000,
+					autoplay: {
+						delay: 0,
+						disableOnInteraction: false,
+					},
+					slidesPerView: 1,
+				});
+			});
+		});
+	</script>
+
+
+	<script>
+		document.querySelectorAll('.trackButton').forEach(button => {
+			button.addEventListener('click', async function () {
+				const orderStatus = this.getAttribute('data-order-status');
+				const trackNumber = this.getAttribute('data-track-number');
+				const resultDivId = this.getAttribute('data-result-id');
+				// '배송중' 또는 '배송완료'가 아닌 경우
+				if (orderStatus !== "배송중" && orderStatus !== "배송완료" && orderStatus !== "교환") {
+					alert("현재 배송중이 아닙니다.");
+					event.preventDefault(); // 이벤트 중단
+					return;
+				}
+				try {
+					const accessToken = "[[${AccessToken}]]";
+					const trackingData = await fetchTrackingInfo(accessToken, trackNumber);
+					displayTrackingInfo(trackingData, resultDivId);
+				} catch (error) {
+					alert("배송 조회를 실패하였습니다.");
+					console.error('Error:', error);
+				}
+			});
+		});
+
+		async function fetchTrackingInfo(accessToken, trackNumber) {
+			const url = 'https://apis.tracker.delivery/graphql';
+			const query = `query Track($carrierId: ID!, $trackingNumber: String!) {
+                track(carrierId: $carrierId, trackingNumber: $trackingNumber) {
+                    lastEvent {
+                        time
+                        status {
+                            code
+                            name
+                        }
+                        description
+                    }
+                    events(last: 10) {
+                        edges {
+                            node {
+                                time
+                                status {
+                                    code
+                                    name
+                                }
+                                description
+                            }
+                        }
+                    }
+                }
+            }`;
+			const variables = {
+				carrierId: "kr.cjlogistics",
+				trackingNumber: trackNumber
+			};
+
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${accessToken}`
+				},
+				body: JSON.stringify({query, variables})
+			});
+
+			return await response.json();
+		}
+
+		function displayTrackingInfo(data, resultDivId) {
+			let htmlContent = `<div style=" display: flex;
+    align-items: center;
+    text-align: center;"><h2 style=" flex-grow: 1;">배송 이력</h2><button class="closeButton" data-result-div-id="${resultDivId}" style="width:70px; margin-left: auto;"><i class="fa-solid fa-xmark" style="font-size: 20px;"></i></button></div><table>`;
+
+			data.data.track.events.edges.forEach(edge => {
+				const event = edge.node;
+				const eventDate = new Date(event.time);
+				const dateFormatter = new Intl.DateTimeFormat('ko-KR', {
+					year: 'numeric', month: '2-digit', day: '2-digit',
+					hour: '2-digit', minute: '2-digit', hour12: true
+				});
+				const formattedEventTime = dateFormatter.format(eventDate);
+				htmlContent += `<tr><td>${formattedEventTime}</td><td rowspan="2" style="width:70px;">${event.status.name}</td></tr><tr><td>${event.description}<td></tr>`;
+			});
+			htmlContent += '</table>';
+
+			document.getElementById(resultDivId).innerHTML = htmlContent;
+			// 모든 "X" 버튼에 대해 이벤트 리스너 추가
+			document.querySelectorAll('.closeButton').forEach(button => {
+				button.addEventListener('click', function () {
+					const divId = this.getAttribute('data-result-div-id');
+					document.getElementById(divId).innerHTML = '';
+				});
+			});
+		}
+
+
+	</script>
+	<script>
+		function confirmPurchase(orderInfoId) {
+			$.ajax({
+				url: '/confirm-purchase/' + orderInfoId,
+				method: 'POST',
+				success: function (response) {
+					// 성공적으로 처리된 경우 사용자에게 알림
+					alert('구매가 확정되었습니다.');
+
+					// 페이지 새로고침 또는 UI 업데이트
+					location.reload();
+				},
+				error: function (xhr, status, error) {
+					// 에러 처리
+					alert('오류가 발생했습니다: ' + error);
+				}
+			});
+			// AJAX 요청으로 구매 확정 처리
+			// 예: POST 요청을 '/confirm-purchase/' + orderInfoId로 보내기
+		}
+
+		function writeReview(orderInfoId) {
+			// 리뷰 작성 페이지로 이동
+			window.location.href = '/write-review/' + orderInfoId;
+		}
+	</script>
+
+	<script>
+		function viewReview(reviewId) {
+			window.location.href = '/view-review?reviewId=' + reviewId;
+		}
+	</script>
+
+
+
+
+
+</body>
+
+</html>

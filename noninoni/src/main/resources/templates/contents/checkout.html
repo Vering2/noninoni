@@ -1,0 +1,831 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<style>
+		.swiper-container {
+			overflow: hidden;
+		}
+
+
+		.content {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100px;
+			height: 100px;
+			/* 컨텐츠 내용 스타일링 */
+		}
+
+		/* Swiper 컨테이너의 크기 조정 */
+		.swiper-container {
+			width: 100px;
+			/* 너비를 100%로 설정 */
+			height: 100px;
+			/* 높이를 300px로 설정 */
+		}
+
+		/* 각 슬라이드 항목의 크기 조정 */
+		.swiper-slide {
+			text-align: center;
+			font-size: 18px;
+			background: #fff;
+
+			/* 슬라이드 항목 내부의 정사각형 컨테이너 크기 조정 */
+			.square-container {
+				width: 100%;
+				/* 너비를 100%로 설정 */
+				height: 100%;
+				/* 높이를 100%로 설정 */
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			/* 이미지 스타일 */
+			img {
+				max-width: 100%;
+				height: auto;
+				border-radius: 10px;
+				/* 이미지의 모서리를 둥글게 */
+			}
+		}
+
+		#omessage_select {
+			text-align-last: center;
+			/* 텍스트를 가운데 정렬 */
+			-moz-text-align-last: center;
+			/* Firefox를 위한 스타일 */
+		}
+	</style>
+
+</head>
+
+<body>
+	<!-- header를 포함하는 부분 -->
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<h2>주문/결제</h2>
+	<!-- 최근 배송지 선택 -->
+	<h3>배송지</h3>
+	<table>
+		<td>
+			<button type="button" id="toggleAddressesList">목록 보기</button>
+		</td>
+	</table>
+	<form id="selectDefaultAddressForm">
+		<div id="addressesListContainer" style="display: none;">
+			<div>
+				<th:block th:each="address, iterStat : ${deliveryAddresses}">
+					<input type="hidden" th:value="${address.id}" th:id="'addressId_' + ${iterStat.index}" />
+					<table>
+						<tr>
+							<th th:if="${address.id == defaultaddress?.id}" th:id="'defaultMark_' + ${iterStat.index}">
+								[기본]
+							</th>
+							<th th:unless="${address.id == defaultaddress?.id}"
+								th:id="'nonDefaultMark_' + ${iterStat.index}">
+							</th>
+							<th th:id="'nickName_' + ${iterStat.index}" th:text="${address.nickName}">닉네임</th>
+							<td rowspan="2">
+								<button type="button" th:id="'selectButton_' + ${iterStat.index}">선택</button>
+							</td>
+						</tr>
+						<tr>
+							<th>수령인</th>
+							<td><input type="text" th:value="${address.recipient}"
+									th:id="'recipient_' + ${iterStat.index}" readonly></td>
+						</tr>
+						<tr>
+							<th>주소</th>
+							<td><input type="text" th:value="${address.address}" th:id="'address_' + ${iterStat.index}"
+									readonly></td>
+							<td rowspan="2">
+								<button type="button" th:id="'deleteButton_' + ${iterStat.index}" readonly>삭제</button>
+							</td>
+						</tr>
+						<tr>
+							<th>연락처</th>
+							<td><input type="text" th:value="${address.phoneNumber}"
+									th:id="'phoneNumber_' + ${iterStat.index}" readonly></td>
+						</tr>
+					</table>
+				</th:block>
+			</div>
+		</div>
+	</form>
+
+
+
+	<table>
+		<td>
+			<button type="button" id="toggleAddressesInput">주소 입력</button>
+		</td>
+	</table>
+
+	<div id="addressesInputContainer" style="display: none;">
+		<form id="deliveryAddressForm" method="post">
+			<table>
+				<colgroup>
+				<col style="width: 50px;">
+				</colgroup>
+				<tr>
+					<th>별칭</th>
+					<td><input type="text" id="nickName" name="nickName" required></td>
+				</tr>
+				<tr>
+					<th>
+						수령인
+					</th>
+					<td><input type="text" id="recipient" name="recipient" required></td>
+				</tr>
+				<tr>
+					<th>
+						주소
+					</th>
+					<td>
+						<input type="text" id="postcode" name="PostCode" placeholder="우편번호" readonly
+							style="float: left; width: calc(100% - 107px); margin-block: 2px;">
+						<input type="button" onclick="execDaumPostcode()" value="우편번호 찾기"
+							style="float: left; font-weight: bold; background-color: white; font-size: 12px; margin-left: 5px; width: 100px; height: 20px; margin-block: 2px;"><br>
+						<input type="text" id="roadAddress" name="address[]" placeholder="도로명주소"
+							style="float: left; margin-block: 2px;" required>
+						<input type="text" id="jibunAddress" placeholder="지번주소" hidden>
+						<span id="guide" style="color:#999;display:none"></span>
+						<input type="text" id="detailAddress" name="address[]" placeholder="상세주소"
+							style="float: left; margin-block: 2px;" required>
+						<input type="text" id="extraAddress" placeholder="참고항목" hidden>
+					</td>
+				</tr>
+				<tr>
+					<th>
+						연락처
+					</th>
+					<td>
+						<div style="display: flex;     width: calc(100% + 2px);"><select id="mobile1"
+								name="phoneNumber[]" fw-filter="isNumber&amp;isFill" fw-label="휴대전화" fw-alone="N"
+								fw-msg="" style="width: 33%;" required>
+								<option value="010">010</option>
+								<option value="011">011</option>
+								<option value="016">016</option>
+								<option value="017">017</option>
+								<option value="018">018</option>
+								<option value="019">019</option>
+
+							</select>-<input id="mobile2" name="phoneNumber[]" maxlength="4" type="text"
+								style="width: 33%;" required>
+							-<input id="mobile3" name="phoneNumber[]" maxlength="4" type="text" style="width: 33%;"
+								required>
+						</div>
+					</td>
+				</tr>
+			</table>
+			<table>
+				<td>
+					<button type="submit">배송지 저장</button>
+				</td>
+			</table>
+
+		</form>
+	</div>
+	<h4>배송지 정보</h4>
+	<div>
+		<form id="DefaultAddressForm">
+			<div>
+				<input type="hidden" th:value="${defaultaddress?.id}" id="defaultaddressId" />
+				<table>
+					<tr>
+						<th colspan="2" th:text="${defaultaddress?.nickName}" id="defaultaddressNickName">닉네임</th>
+					</tr>
+					<tr>
+						<th>수령인</th>
+						<td><input type="text" th:value="${defaultaddress?.recipient}" id="defaultaddressRecipient"
+								readonly required></td>
+					</tr>
+					<tr>
+						<th>주소</th>
+						<td><input type="text" th:value="${defaultaddress?.address}" id="defaultaddressAddress" readonly
+								required></td>
+					</tr>
+					<tr>
+						<th>연락처</th>
+						<td><input type="text" th:value="${defaultaddress?.phoneNumber}" id="defaultaddressPhoneNumber"
+								readonly required></td>
+					</tr>
+				</table>
+			</div>
+			<table>
+				<td>
+					<button type="button" id="setDefaultAddressButton">기본 배송지로 저장</button>
+				</td>
+			</table>
+
+
+		</form>
+		<div class="ec-shippingInfo-shippingMessage segment unique  ">
+			<select id="omessage_select" name="omessage_select" fw-filter="" fw-label="배송 메세지" fw-msg="">
+				<option value="oMessage-0" selected="selected">-- 메시지 선택 (선택사항) --</option>
+				<option value="oMessage-1">배송 전에 미리 연락바랍니다.</option>
+				<option value="oMessage-2">부재 시 경비실에 맡겨주세요.</option>
+				<option value="oMessage-3">부재 시 문 앞에 놓아주세요.</option>
+				<option value="oMessage-4">빠른 배송 부탁드립니다.</option>
+				<option value="oMessage-5">택배함에 보관해 주세요.</option>
+				<option value="oMessage-input">직접 입력</option>
+			</select>
+			<div class="ec-shippingInfo-omessageInput gBlank10" style="display:none;">
+				<textarea id="omessage" name="omessage" fw-filter="" fw-label="배송 메세지" fw-msg="" maxlength="255"
+					cols="70"></textarea>
+			</div>
+		</div>
+	</div>
+
+
+
+
+
+	<div th:if="${cartItems} != null">
+		<h3>주문상품</h3>
+		<ul>
+			<th:block th:each="item, iterStat : ${cartItems}">
+				<table>
+					<input type="hidden" class="productid" th:id="'product_' + ${iterStat.index}"
+						th:value="${item.product.id}" />
+					<tr>
+						<th>
+							<div class="swiper-container" th:id="'swiper-' + ${iterStat.index}">
+								<div class="swiper-wrapper">
+									<!-- 슬라이드 항목 -->
+									<div th:each="url : ${#strings.arraySplit(item.product.mainimageUrl, ',')}"
+										class="swiper-slide">
+										<div class="square-container">
+											<div class="content">
+												<picture>
+													<img th:src="@{/uploaded_files/product/{url}(url=${url})}"
+														alt="Slide Image" style="width:100%; height:100%;"
+														decoding="async" loading="lazy">
+												</picture>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</th>
+						<td style="width: 40%;">
+							<div style="float: right;">
+								<span class="product-name" th:text="${item.product.name}"></span>
+								<br>
+								<span class="product-color" th:text="${item.variant.color.name}"></span>
+								<span class="product-size" th:text="${item.variant.size.name}"></span>
+								<span
+									th:text="${(item.variant.additionalPrice != null && item.variant.additionalPrice > 0 ? ' (+' + item.variant.additionalPrice + '원)' : '')}"></span>
+								<span class="variantId" th:text="${item.variant.id}" hidden></span>
+
+							</div>
+						</td>
+
+						</td>
+						<td style="width: 20%;">
+							<div style="float: right;">
+								<span class="product-price"
+									th:text="${#numbers.formatInteger(item.product.price + item.variant.additionalPrice, 0, 'COMMA')} + '원'"></span><br>
+							</div>
+						</td>
+						<td style="width: 20%;">
+							<div style="float: right;">
+								<span class="product-quantity" th:text="${item.quantity + '개'}"></span><br>
+							</div>
+						</td>
+
+						<td style="width: 20%;">
+							<div style="float: right;">
+								<span
+									th:text="${#numbers.formatInteger((item.product.price + item.variant.additionalPrice) * item.quantity, 0, 'COMMA')} + '원'"></span>
+							</div>
+						</td>
+					</tr>
+				</table>
+			</th:block>
+
+		</ul>
+	</div>
+	<div>
+		<h3>결제 정보</h3>
+		<!-- 총 가격 합계를 표시 -->
+		<h5>주문 상품 : <span th:text="${#numbers.formatInteger(totalPrice, 0, 'COMMA')} + '원'"></span></h5>
+		<h5>배송비 : <span th:text="${#numbers.formatInteger(shippingCost, 0, 'COMMA')} + '원'"></span></h5>
+		<!-- 최종 가격 합계를 표시 -->
+		<h4>최종 가격: <span th:text="${#numbers.formatInteger(finalPrice, 0, 'COMMA')} + '원'"></span></h4>
+		<input type="hidden" th:id="finalPrice" th:value="${finalPrice}">
+		<input type="hidden" th:id="shippingCost" th:value="${shippingCost}">
+	</div>
+	<table>
+		<td>
+			<button onclick="requestPay()">결제하기</button>
+		</td>
+	</table>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var messageSelect = document.getElementById('omessage_select');
+			var messageInput = document.getElementById('omessage');
+			var messageInputDiv = document.querySelector('.ec-shippingInfo-omessageInput');
+
+			messageSelect.addEventListener('change', function () {
+				var selectedOption = this.options[this.selectedIndex];
+
+				if (selectedOption.value === 'oMessage-input') {
+					// "직접 입력" 옵션을 선택한 경우, textarea를 표시합니다.
+					messageInputDiv.style.display = 'block';
+					messageInput.value = ''; // textarea 초기화
+				} else {
+					// 다른 옵션을 선택한 경우, 선택된 메시지를 textarea에 입력하고 숨깁니다.
+					messageInputDiv.style.display = 'none';
+					messageInput.value = selectedOption.text;
+				}
+			});
+		});
+	</script>
+	<script>
+
+		function requestPay() {
+			// 배송지 정보 입력 필드를 가져옵니다.
+			var recipient = document.getElementById('defaultaddressRecipient').value;
+			var recaddress = document.getElementById('defaultaddressAddress').value;
+			var recphoneNumber = document.getElementById('defaultaddressPhoneNumber').value;
+
+			// 하나라도 비어있으면 알림을 표시합니다.
+			if (!recipient || !recaddress || !recphoneNumber) {
+				alert('배송지 정보를 먼저 입력해주세요.');
+				return; // 함수를 여기서 종료합니다.
+			}
+
+			var finalPrice = parseInt(document.getElementById("finalPrice").value);
+			var shippingCost = document.getElementById("shippingCost").value;
+			var omessage = document.getElementById("omessage").value;
+			var memberId = "[[${member.memberId}]]";
+			var memberEmail = "[[${member.email}]]";
+			var memberName = "[[${member.name}]]";
+			var memberMobile = "[[${member.mobile}]]";
+			var address = "[[${member.addressRoad}]] [[${member.addressDetails}]]";
+			var postcode = "[[${member.addressPostCode}]]";
+
+
+			var productIdElements = document.querySelectorAll('.productid');
+			var productQuantityElements = document.querySelectorAll('.product-quantity');
+			var productPriceElements = document.querySelectorAll('.product-price');
+			var productNameElements = document.querySelectorAll('.product-name');
+			var colorNameElements = document.querySelectorAll('.product-color');
+			var sizeNameElements = document.querySelectorAll('.product-size');
+			var productNames = Array.from(productNameElements).map(function (productNameElement, index) {
+				var productName = productNameElement.textContent;
+				var colorName = colorNameElements[index].textContent;
+				var sizeName = sizeNameElements[index].textContent;
+
+				return productName + " (" + colorName + ", " + sizeName + ")";
+			});
+			// 배열을 문자열로 변환 (쉼표로 구분)
+			let productNamesString = productNames.join(", ");
+
+			var finalProductName = productNames.join(", ");
+
+			var merchantUid = memberName + new Date().getTime();
+
+			var colorName = colorNameElements.textContent;
+			var sizeName = sizeNameElements.textContent;
+			var OrderId = new Date().getTime();
+			var variantIdElements = document.querySelectorAll('.variantId');
+			var orderInfo = Array.from(productIdElements).map(function (element, index) {
+				var quantity = parseInt(productQuantityElements[index].textContent);
+				var price = parseFloat(productPriceElements[index].textContent.replace(/[^0-9.]/g, ""));
+				var productName = productNameElements[index].textContent;
+				var variantId = variantIdElements[index].textContent;
+
+				return {
+					productId: element.value,
+					quantity: quantity,
+					price: price,
+					productName: productName,
+					variantId: variantId
+
+				};
+			});
+
+			var paymentData = {
+				orderId: OrderId,
+				memberId: memberId,
+				orderInfo: orderInfo, // 상품 정보
+				recipient: recipient,
+				recphoneNumber: recphoneNumber,
+				recaddress: recaddress,
+				omessage: omessage,
+				productNames: productNamesString,
+				shippingCost: shippingCost,
+				merchantUid: merchantUid
+			};
+
+			// 결제 전 재고 확인
+			prepareOrder(paymentData, function (OrderId) {
+				// 재고 확인이 성공적으로 완료되면 결제 창을 호출
+				IMP.init("imp48530562");
+				IMP.request_pay({ // param
+					pg: "kakaopay",
+					merchant_uid: merchantUid,
+					name: finalProductName,
+					amount: finalPrice,
+					buyer_email: memberEmail,
+					buyer_name: memberName,
+					buyer_tel: memberMobile,
+					buyer_addr: address,
+					buyer_postcode: postcode,
+					m_redirect_url: 'https://noninoni.shop/payment/mobile/success'
+				}, function (rsp) {
+					console.log(rsp);
+					if (rsp.success) {
+						var verifyData = {
+							impUid: rsp.imp_uid
+						};
+
+						// 결제 검증 요청
+						$.ajax({
+							type: "POST",
+							url: "/verifyIamport",
+							contentType: "application/json",
+							data: JSON.stringify(verifyData), // 결제 데이터 전송
+							dataType: "json"
+						}).done(function (data) {
+							// 검증 결과 처리
+							if (data.isValid) {
+								alert("결제 완료");
+								// 결제 성공 시 주문 상세 페이지로 이동
+								window.location.href = '/orders/detail/' + OrderId;
+							} else {
+								alert("결제 검증 실패");
+								// 결제가 실패한 경우 결제 취소 호출
+								jQuery.ajax({
+									"url": '/cancel',
+									"type": "POST",
+									"contentType": "application/json",
+									"data": JSON.stringify({
+										"id": OrderId,
+										"impUid": rsp.imp_uid,
+										"paidAmount": finalPrice,
+										"reason": "결제 오류로 인한 취소",
+										"cancelAmount": finalPrice
+									}),
+									"dataType": "json",
+									"success": function (response) {
+
+										alert("취소 완료");
+										// 페이지 새로고침 또는 UI 업데이트
+										location.reload();
+										// 성공 처리 로직
+									},
+									"error": function (xhr, status, error) {
+										// 오류 처리 로직
+										alert("취소 실패: " + xhr.responseText);
+										// 페이지 새로고침 또는 UI 업데이트
+										location.reload();
+									}
+								});
+							}
+						});
+					} else {
+						var msg = '결제에 실패하였습니다. 에러내용 : ' + rsp.error_msg;
+						alert(msg);
+					}
+				});
+			}, function (error) {
+				// 오류 처리
+				alert("재고 부족 상품이 있습니다. 상품 수량을 다시 확인해주세요. 주문 가능한 수량: " + error.responseText);
+			});
+		} //requestPay
+
+
+		function prepareOrder(orderInfo, successCallback, errorCallback) {
+			$.ajax({
+				type: "POST",
+				url: "/prepare-order",
+				contentType: "application/json",
+				data: JSON.stringify(orderInfo),
+				dataType: "json"
+			}).done(function (response) {
+				successCallback(response); // 성공 콜백 함수 호출
+			}).fail(function (error) {
+				errorCallback(error); // 실패 콜백 함수 호출
+			});
+		}
+
+	</script>
+
+
+
+
+
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var form = document.getElementById('deliveryAddressForm');
+			form.addEventListener('submit', function (e) {
+				e.preventDefault();
+
+				var formData = new FormData(form);
+				var deliveryAddress = {};
+				var phoneNumber = [];
+				var address = [];
+
+				formData.forEach(function (value, key) {
+					if (key.startsWith('phoneNumber')) {
+						phoneNumber.push(value);
+					} else if (key.startsWith('address')) {
+						address.push(value);
+					}
+					else {
+						deliveryAddress[key] = value;
+					}
+				});
+
+				var deliveryAddressDTO = {
+					deliveryAddress: deliveryAddress,
+					phoneNumber: phoneNumber,
+					address: address
+				};
+
+				fetch('/checkout/saveDeliveryAddress', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(deliveryAddressDTO)
+				})
+					.then(response => {
+						if (!response.ok) {
+							throw new Error('Network response was not ok');
+						}
+						return response.text();
+					})
+					.then(() => {
+						alert('배송지가 저장되었습니다.');
+						window.location.reload();
+					})
+					.catch(error => {
+						console.error('Error:', error);
+						alert('배송지 저장 중 오류가 발생했습니다.');
+					});
+			});
+		});
+
+
+		function deleteItem(itemId, productid) {
+			alert(" 삭제 완료");
+			$('button.delete-item[data-product-value="' + productid + '"]').closest('li').remove();
+
+		}
+
+		$(document).ready(function () {
+
+
+			$('button.delete-item').click(function () {
+				var itemId = $(this).data('item-id');
+				var productInputId = $(this).data('product-id');
+				var productid = $('#' + productInputId).val();
+				deleteItem(itemId, productid);
+			});
+
+		});
+	</script>
+
+
+
+
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var toggleButton = document.getElementById('toggleAddressesList');
+			var addressesListContainer = document.getElementById('addressesListContainer');
+
+			toggleButton.addEventListener('click', function () {
+				// 'display' 속성을 토글하여 목록을 표시하거나 숨김
+				if (addressesListContainer.style.display === 'none') {
+					addressesListContainer.style.display = 'block';
+				} else {
+					addressesListContainer.style.display = 'none';
+				}
+			});
+		});
+	</script>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var toggleButton = document.getElementById('toggleAddressesInput');
+			var addressesListContainer = document.getElementById('addressesInputContainer');
+
+			toggleButton.addEventListener('click', function () {
+				// 'display' 속성을 토글하여 목록을 표시하거나 숨김
+				if (addressesListContainer.style.display === 'none') {
+					addressesListContainer.style.display = 'block';
+				} else {
+					addressesListContainer.style.display = 'none';
+				}
+			});
+		});
+	</script>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var selectButtons = document.querySelectorAll('[id^="selectButton_"]');
+			selectButtons.forEach(function (button) {
+				button.addEventListener('click', function () {
+					var index = this.id.split('_')[1];
+					var addressId = document.getElementById('addressId_' + index).value;
+
+					var nicknameElement = document.getElementById('nickName_' + index);
+					var recipientElement = document.getElementById('recipient_' + index);
+					var addressElement = document.getElementById('address_' + index);
+					var phoneNumberElement = document.getElementById('phoneNumber_' + index);
+
+					var nickname = nicknameElement ? nicknameElement.textContent : '';
+					var recipient = recipientElement ? recipientElement.value : '';
+					var address = addressElement ? addressElement.value : '';
+					var phoneNumber = phoneNumberElement ? phoneNumberElement.value : '';
+
+					// 선택된 배송지 정보를 선택된 주소 섹션에 표시
+					document.getElementById('defaultaddressId').value = addressId;
+					document.getElementById('defaultaddressNickName').textContent = nickname;
+					document.getElementById('defaultaddressRecipient').value = recipient;
+					document.getElementById('defaultaddressAddress').value = address;
+					document.getElementById('defaultaddressPhoneNumber').value = phoneNumber;
+
+					var addressesListContainer = document.getElementById('addressesListContainer');
+					addressesListContainer.style.display = 'none';
+					alert('배송지가 선택 되었습니다.');
+
+				});
+			});
+		});
+	</script>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var deleteButtons = document.querySelectorAll('[id^="deleteButton_"]');
+			deleteButtons.forEach(function (button) {
+				button.addEventListener('click', function () {
+					var index = this.id.split('_')[1];
+					var addressId = document.getElementById('addressId_' + index).value;
+
+					if (confirm('해당 배송지를 삭제하시겠습니까?')) {
+						fetch('/checkout/deleteDeliveryAddress?addressId=' + addressId, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								// 필요한 경우 CSRF 토큰 추가
+							}
+						})
+							.then(response => {
+								if (!response.ok) {
+									throw new Error('Network response was not ok');
+								}
+								alert('배송지가 삭제되었습니다.');
+								window.location.reload(); // 페이지 새로고침
+							})
+							.catch(error => {
+								console.error('Error:', error);
+								alert('배송지 삭제 중 오류가 발생했습니다.');
+							});
+					}
+				});
+			});
+		});
+	</script>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var setDefaultAddressButton = document.getElementById('setDefaultAddressButton');
+			var defaultAddressIdInput = document.getElementById('defaultaddressId');
+
+			setDefaultAddressButton.addEventListener('click', function () {
+				var addressId = defaultAddressIdInput.value;
+
+				if (addressId) {
+					fetch('/checkout/setDefaultAddress', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							// 필요한 경우 CSRF 토큰 추가
+						},
+						body: JSON.stringify({addressId: addressId})
+					})
+						.then(response => {
+							if (!response.ok) {
+								throw new Error('Network response was not ok');
+							}
+							return response.text();
+						})
+						.then(() => {
+							alert('기본 배송지가 설정되었습니다.');
+							window.location.reload();
+						})
+						.catch(error => {
+							console.error('Error:', error);
+							alert('기본 배송지 설정 중 오류가 발생했습니다.');
+						});
+				} else {
+					alert('선택된 배송지가 없습니다.');
+				}
+			});
+		});
+	</script>
+	<script>
+		$(document).ready(function () {
+			$('.swiper-container').each(function (index) {
+				new Swiper(this, {
+					loop: true,
+					centeredSlides: true,
+					speed: 2000,
+					autoplay: {
+						delay: 0,
+						disableOnInteraction: false,
+					},
+					slidesPerView: 1,
+				});
+			});
+		});
+	</script>
+
+
+	<script>
+		//본 예제에서는 도로명 주소 표기 방식에 대한 법령에 따라, 내려오는 데이터를 조합하여 올바른 주소를 구성하는 방법을 설명합니다.
+		function execDaumPostcode() {
+			new daum.Postcode({
+				oncomplete: function (data) {
+					// 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+
+					// 도로명 주소의 노출 규칙에 따라 주소를 표시한다.
+					// 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+					var roadAddr = data.roadAddress; // 도로명 주소 변수
+					var extraRoadAddr = ''; // 참고 항목 변수
+
+					// 법정동명이 있을 경우 추가한다. (법정리는 제외)
+					// 법정동의 경우 마지막 문자가 "동/로/가"로 끝난다.
+					if (data.bname !== '' && /[동|로|가]$/g.test(data.bname)) {
+						extraRoadAddr += data.bname;
+					}
+					// 건물명이 있고, 공동주택일 경우 추가한다.
+					if (data.buildingName !== '' && data.apartment === 'Y') {
+						extraRoadAddr += (extraRoadAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+					}
+					// 표시할 참고항목이 있을 경우, 괄호까지 추가한 최종 문자열을 만든다.
+					if (extraRoadAddr !== '') {
+						extraRoadAddr = ' (' + extraRoadAddr + ')';
+					}
+
+					// 우편번호와 주소 정보를 해당 필드에 넣는다.
+					document.getElementById('postcode').value = data.zonecode;
+					document.getElementById("roadAddress").value = roadAddr;
+					document.getElementById("jibunAddress").value = data.jibunAddress;
+
+					var detailAddressInput = document.getElementById("detailAddress");
+
+
+					// 참고항목 문자열이 있을 경우 해당 필드에 넣는다.
+					if (roadAddr !== '') {
+						document.getElementById("extraAddress").value = extraRoadAddr;
+					} else {
+						document.getElementById("extraAddress").value = '';
+					}
+
+					var guideTextBox = document.getElementById("guide");
+					// 사용자가 '선택 안함'을 클릭한 경우, 예상 주소라는 표시를 해준다.
+					if (data.autoRoadAddress) {
+						var expRoadAddr = data.autoRoadAddress + extraRoadAddr;
+						guideTextBox.innerHTML = '(예상 도로명 주소 : ' + expRoadAddr + ')';
+						guideTextBox.style.display = 'block';
+
+					} else if (data.autoJibunAddress) {
+						var expJibunAddr = data.autoJibunAddress;
+						guideTextBox.innerHTML = '(예상 지번 주소 : ' + expJibunAddr + ')';
+						guideTextBox.style.display = 'block';
+					} else {
+						guideTextBox.innerHTML = '';
+						guideTextBox.style.display = 'none';
+					}
+				}
+			}).open();
+		}
+	</script>
+
+
+
+
+
+
+
+
+</body>
+
+</html>

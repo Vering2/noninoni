@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+
+<body>
+	<!-- 카카오톡 버튼 -->
+	<div style="z-index: 99; display: block; position: fixed; bottom: 0px; left: 0px;">
+		<a class="kakaotalk" href="http://pf.kakao.com/_nPKxfG/chat"
+			style="border: none; padding: 10px; cursor: pointer;">
+			<img src="/images/icon/kakaotalk.png" style="height: auto; width: 90px;"  alt="KakaoTalk">
+		</a>
+	</div>
+	<!-- 맨 위로 가기 및 맨 아래로 가기 버튼 -->
+	<div style="z-index: 99; display: flex; flex-direction: row; position: fixed; bottom: 0px; right: 0px; ">
+		<i class="fa-regular fa-square-caret-up" onclick="scrollToTop()" style="font-size: 45px; display: none; margin-right: 5px;"></i>
+		<i class="fa-regular fa-square-caret-down" onclick="scrollToBottom()" style="font-size: 45px; display: none; margin-right: 5px;"></i>
+	</div>
+	
+	
+	<script>
+		
+			// 맨 위로 가기 버튼을 클릭하면 페이지 맨 위로 스크롤
+			function scrollToTop() {
+				document.body.scrollTop = 0; // Safari
+				document.documentElement.scrollTop = 0; // Chrome, Firefox, IE, Opera
+			}
+
+			// 맨 아래로 가기 버튼을 클릭하면 페이지 맨 아래로 스크롤
+			function scrollToBottom() {
+				document.body.scrollTop = document.body.scrollHeight; // Safari
+				document.documentElement.scrollTop = document.documentElement.scrollHeight; // Chrome, Firefox, IE, Opera
+			}
+
+			// 스크롤 이벤트 리스너 추가
+			window.addEventListener('scroll', function () {
+				var scrollToTopButton = document.querySelector('.fa-square-caret-up');
+				var scrollToBottomButton = document.querySelector('.fa-square-caret-down');
+
+				// 페이지 최상단에서 맨 위로 가기 버튼 숨김/표시 조절
+				if (scrollToTopButton) {
+					scrollToTopButton.style.display = (window.scrollY > 100) ? 'block' : 'none';
+				}
+
+				// 페이지 최하단에서 맨 아래로 가기 버튼 숨김/표시 조절
+				if (scrollToBottomButton) {
+					var isAtBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight;
+					scrollToBottomButton.style.display = (isAtBottom) ? 'none' : 'block';
+				}
+			});
+	</script>
+
+
+</body>
+
+</html>

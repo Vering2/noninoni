@@ -1,0 +1,293 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<style>
+		.row {
+			display: flex;
+			flex-wrap: wrap;
+		}
+
+		.col {
+			flex: 0 0 48%;
+			/* 모바일 화면에서 기본적으로 한 줄에 하나 */
+			max-width: 48%;
+			/* 모바일 화면에서 기본적으로 한 줄에 하나 */
+			padding: 1%;
+		}
+
+		/* 데스크탑 화면에서 한 줄에 네 개가 나오게 하는 미디어 쿼리 */
+		@media (min-width: 768px) {
+			.col {
+				flex: 0 0 23%;
+				/* 데스크탑에서는 한 줄에 네 개 */
+				max-width: 23%;
+				/* 데스크탑에서는 한 줄에 네 개 */
+			}
+		}
+
+		.swiper-container {
+			width: 100%;
+			overflow: hidden;
+		}
+
+		.container .swiper-pagination-bullet {
+			background: rgb(192, 192, 192);
+			/* 페이지 버튼 색상 */
+		}
+
+		.container .swiper-pagination-bullet-active {
+			background: rgb(0, 0, 0);
+			/* 활성화된 페이지 버튼 색상 */
+		}
+
+		.container .swiper-button-prev,
+		.container .swiper-button-next {
+			color: #000;
+			/* 버튼 색상 */
+		}
+
+		.square-container {
+			width: 100%;
+			/* 가로 길이를 50%로 설정 */
+			height: 0;
+			/* 초기 높이는 0으로 설정 */
+			padding-top: 100%;
+			/* 가로 길이에 대한 세로 길이를 50%로 설정하여 정사각형 유지 */
+			position: relative;
+			/* 상대적 위치 지정 */
+		}
+
+		.content {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			/* 컨텐츠 내용 스타일링 */
+		}
+	</style>
+	<style>
+		.review p {
+			text-align: left;
+			float: inline-start;
+			overflow: hidden;
+			width: calc(100% - 50px);
+		}
+
+		.pagination button {
+			width: 30px;
+			/* 버튼의 가로 크기 설정 */
+			/* 추가적인 스타일링 (예: 정렬, 배경색, 테두리 등) */
+		}
+
+		.pagination ul {
+			list-style-type: none;
+			/* 리스트 항목 앞의 점을 제거 */
+			padding: 0;
+			/* 필요한 경우 패딩도 제거 */
+		}
+
+		.pagination li {
+			display: inline;
+			/* 리스트 항목을 가로로 나열 */
+			margin-right: 5px;
+			/* 각 항목 사이에 간격 추가 */
+		}
+
+		.pagination .active {
+			background-color: silver;
+			/* 배경색 */
+			color: white;
+			/* 텍스트 색상 */
+		}
+
+
+		/* 기타 스타일링 */
+	</style>
+
+	<style>
+		.addFavorite,
+		.removeFavorite {
+			background-color: unset;
+			border: 0;
+			color: black;
+		}
+	</style>
+
+
+
+
+</head>
+<!-- header를 포함하는 부분 -->
+<th:block th:replace="~{fragments/header}"></th:block>
+<h2>관심 상품</h2>
+
+
+<div class="container" style="width: 100%;">
+	<div class="row" style="align-items: baseline;">
+		<div th:each="product, iterStat : ${products}" class="col">
+
+
+
+			<!-- 카드 본문 -->
+
+			<table style="border: 0;">
+				<tr>
+					<!-- ... 제품 정보 ... -->
+					<div class="swiper-container" th:id="'swiper-' + ${iterStat.index}">
+						<div class="swiper-wrapper">
+							<!-- 슬라이드 항목 -->
+							<div th:each="url : ${#strings.arraySplit(product.mainimageUrl, ',')}" class="swiper-slide">
+								<div class="square-container">
+									<a th:href="@{'/product/' + ${product.id}}">
+										<div class="content">
+											<picture>
+												<img th:src="@{/uploaded_files/product/{url}(url=${url})}"
+													alt="Slide Image" decoding="async" loading="lazy">
+											</picture>
+										</div>
+									</a>
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</tr>
+				<tr>
+					<td style="text-align: left;">
+						<a th:href="@{'/product/' + ${product.id}}">
+							<div>
+								<span th:text="${product.name}">제품명</span>
+							</div>
+							<div>
+								<span
+									th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')}">가격</span><span>원</span>
+							</div>
+						</a>
+					</td>
+					<td th:if="${isLoggedIn}" style="text-align: right;">
+						<!-- 로그인 했을 때만 보이는 부분 -->
+						<button th:id="${'addFavorite-' + product.id}" class="addFavorite"
+							th:style="${favoriteProductIds.contains(product.id) ? 'display: none;' : 'display: block;'}">
+							<i class="fa-regular fa-heart" style="font-size: 21px;"></i>
+						</button>
+
+						<button th:id="${'removeFavorite-' + product.id}" class="removeFavorite"
+							th:style="${favoriteProductIds.contains(product.id) ? 'display: block;' : 'display: none;'}">
+							<i class="fa-solid fa-heart" style="font-size: 21px;"></i>
+						</button>
+					</td>
+				</tr>
+			</table>
+
+
+		</div>
+	</div>
+</div>
+<div class="pagination">
+	<ul>
+		<!-- 이전 페이지 그룹 링크 -->
+		<li th:if="${startPage > 0}">
+			<button type="button" th:attr="onclick=|location.href='@{/favorites(page=${startPage - 1})}'|">
+				<i class="fa-solid fa-backward" style="font-size: 19px;"></i>
+			</button>
+		</li>
+
+		<!-- 페이지 번호 링크 -->
+		<li th:each="pageNum : ${#numbers.sequence(startPage, endPage)}">
+			<button type="button" th:class="${pageNum == currentPage ? 'active' : ''}"
+				th:attr="onclick=|location.href='@{/favorites(page=${pageNum})}'|">
+				<span th:text="${pageNum + 1}"></span>
+			</button>
+		</li>
+
+		<!-- 다음 페이지 그룹 링크 -->
+		<li th:if="${endPage + 1 < totalPages}">
+			<button type="button" th:attr="onclick=|location.href='@{/favorites(page=${endPage + 1})}'|">
+				<i class="fa-solid fa-forward" style="font-size: 19px;"></i>
+			</button>
+		</li>
+	</ul>
+</div>
+<div style="bottom: 0;">
+	<th:block th:replace="~{fragments/footer}"></th:block>
+</div>
+
+<script>
+	$(document).ready(function () {
+		// 관심 상품 추가 버튼에 대한 이벤트 리스너
+		$('.addFavorite').click(function () {
+			var productId = this.id.split('-')[1];
+			var addButton = $(this);
+			var removeButton = $('#removeFavorite-' + productId);
+
+			$.ajax({
+				url: '/api/favorites/add',
+				type: 'POST',
+				data: {
+					memberId: '[[${memberId}]]', // 실제 멤버 ID로 대체
+					productId: productId
+				},
+				success: function (response) {
+					addButton.hide();
+					removeButton.show();
+				}
+			});
+		});
+
+		// 관심 상품 해제 버튼에 대한 이벤트 리스너
+		$('.removeFavorite').click(function () {
+			var productId = this.id.split('-')[1];
+			var removeButton = $(this);
+			var addButton = $('#addFavorite-' + productId);
+
+			$.ajax({
+				url: '/api/favorites/remove',
+				type: 'POST',
+				data: {
+					memberId: '[[${memberId}]]', // 실제 멤버 ID로 대체
+					productId: productId
+				},
+				success: function (response) {
+					removeButton.hide();
+					addButton.show();
+				}
+			});
+		});
+	});
+</script>
+
+
+
+<script>
+	$(document).ready(function () {
+		$('.swiper-container').each(function (index) {
+			new Swiper(this, {
+				loop: true,
+				centeredSlides: true,
+				speed: 2000,
+				autoplay: {
+					delay: 0,
+					disableOnInteraction: false,
+				},
+				slidesPerView: 1,
+			});
+		});
+	});
+</script>
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

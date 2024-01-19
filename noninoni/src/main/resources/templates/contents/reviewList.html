@@ -1,0 +1,443 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<style>
+		.swiper-container {
+			overflow: hidden;
+		}
+
+
+		.content {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100px;
+			height: 100px;
+			/* 컨텐츠 내용 스타일링 */
+		}
+
+		/* Swiper 컨테이너의 크기 조정 */
+		.swiper-container {
+			width: 100px;
+			/* 너비를 100%로 설정 */
+			height: 100px;
+			/* 높이를 300px로 설정 */
+		}
+
+		/* 각 슬라이드 항목의 크기 조정 */
+		.swiper-slide {
+			text-align: center;
+			font-size: 18px;
+			background: #fff;
+
+			/* 슬라이드 항목 내부의 정사각형 컨테이너 크기 조정 */
+			.square-container {
+				width: 100%;
+				/* 너비를 100%로 설정 */
+				height: 100%;
+				/* 높이를 100%로 설정 */
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			/* 이미지 스타일 */
+			img {
+				max-width: 100%;
+				height: auto;
+				border-radius: 10px;
+				/* 이미지의 모서리를 둥글게 */
+			}
+		}
+
+		.fa-star:before {
+			content: "\f005";
+			font-size: 12px;
+			display: flex;
+		}
+	</style>
+	<style>
+		.review p {
+			text-align: left;
+			float: inline-start;
+			overflow: hidden;
+			width: calc(100% - 50px);
+		}
+
+		/* Swiper 페이징네이션 색상 변경 */
+		.swiper-pagination-clickable .swiper-pagination-bullet {
+			background-color: white;
+			/* 예시 색상: 파란색 */
+		}
+
+		/* Swiper 이전 버튼 색상 변경 */
+		.swiper-button-prev::after {
+			color: white;
+			/* 예시 색상: 파란색 */
+		}
+
+		/* Swiper 다음 버튼 색상 변경 */
+		.swiper-button-next::after {
+			color: white;
+			/* 예시 색상: 파란색 */
+		}
+
+		.pagination button {
+			width: 30px;
+			/* 버튼의 가로 크기 설정 */
+			/* 추가적인 스타일링 (예: 정렬, 배경색, 테두리 등) */
+		}
+
+		.pagination ul {
+			list-style-type: none;
+			/* 리스트 항목 앞의 점을 제거 */
+			padding: 0;
+			/* 필요한 경우 패딩도 제거 */
+		}
+
+		.pagination li {
+			display: inline;
+			/* 리스트 항목을 가로로 나열 */
+			margin-right: 5px;
+			/* 각 항목 사이에 간격 추가 */
+		}
+
+		.pagination .active {
+			background-color: silver;
+			/* 배경색 */
+			color: white;
+			/* 텍스트 색상 */
+		}
+
+		/* 기타 스타일링 */
+	</style>
+	<style>
+		.modal {
+			display: none;
+			/* Hidden by default */
+			position: fixed;
+			/* Stay in place */
+			z-index: 99;
+			/* Sit on top */
+			padding-top: 50px;
+			padding-bottom: 100%;
+			/* Location of the box */
+			margin: 0px auto;
+			min-width: 320px;
+			max-width: 1020px;
+			top: 0;
+			width: 100%;
+			/* Full width */
+			height: calc(100% - 100px);
+			/* Full height */
+			overflow: auto;
+			background-color: rgba(0, 0, 0, 0.9);
+			/* Black w/ opacity */
+		}
+
+		.close {
+			position: absolute;
+			top: 0px;
+			right: 35px;
+			color: #f1f1f1;
+			font-size: 40px;
+			font-weight: bold;
+			cursor: pointer;
+		}
+
+		.hidden-review {
+			display: none;
+		}
+	</style>
+
+<body>
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<div>
+		<h2>리뷰 목록</h2>
+		<form action="/reviews" method="get">
+			<input type="text" name="searchTerm" placeholder="제품명 입력" />
+			<button type="submit">검색</button>
+		</form>
+	</div>
+	<table>
+		<colgroup>
+			<col style="width: 100px;">
+			<!-- 추가 열 설정 -->
+		</colgroup>
+		<thead>
+		</thead>
+		<tbody th:each="review, iterStat : ${reviews}">
+
+
+			<!-- 모달 창 -->
+			<div th:id="'modal-' + ${iterStat.index}" class="modal">
+
+				<div class="swiper-container modalSwiper" th:id="'swiper-' + ${iterStat.index}"
+					style="width: 100%; max-width: 1020px; height: 100%;">
+					<span class="close">&times;</span>
+					<!-- 추가 슬라이드 -->
+					<div class="swiper-wrapper">
+						<div th:each="url : ${#strings.arraySplit(review.imageUrl, ',')}" class="swiper-slide"
+							style="background-color: unset;">
+							<picture>
+								<img th:src="@{'/uploaded_files/review/' + ${url}}" alt="Slide Image"
+									style="width:100%; height:100%;" decoding="async" loading="lazy" />
+							</picture>
+						</div>
+					</div>
+					<!-- 슬라이더 네비게이션 -->
+					<div style="top:50px" class="swiper-pagination" th:id="'swiper-pagination-' + ${iterStat.index}">
+					</div>
+					<div style="top:73px" class="swiper-button-prev" th:id="'swiper-button-prev-' + ${iterStat.index}">
+					</div>
+					<div style="top:73px" class="swiper-button-next" th:id="'swiper-button-next-' + ${iterStat.index}">
+					</div>
+				</div>
+			</div>
+
+			<!-- 제품 이미지 슬라이드 -->
+			<th rowspan="5"
+				th:class="${review.hidden && !#authorization.expression('hasRole(''ADMIN'')') ? 'hidden-review' : ''}">
+				<div class="swiper-container" th:id="'swiper-' + ${iterStat.index}">
+					<div class="swiper-wrapper">
+						<div th:each="url, imgStat : ${#strings.arraySplit(review.imageUrl, ',')}" class="swiper-slide">
+							<div class="square-container">
+								<a href="javascript:void(0)" th:onclick="'openModal(' + ${iterStat.index} + ')'">
+									<div class="content">
+										<picture>
+											<img th:src="@{'/uploaded_files/review/' + ${url}}" alt="Slide Image"
+												style="width:100%; height:100%;" decoding="async" loading="lazy" />
+										</picture>
+									</div>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</th>
+			<tr th:class="${review.hidden && !#authorization.expression('hasRole(''ADMIN'')') ? 'hidden-review' : ''}">
+				<!-- 별점 부분 수정 -->
+				<td>
+					<div><a th:href="@{'/product/' + ${review.orderInfo.variant.product.id}}">
+							<span
+								th:text="${review.orderInfo.variant.product.name + ' ' +review.orderInfo.variant.color.name + ' / ' +review.orderInfo.variant.size.name }"
+								style="float: inline-start"></span></a>
+						<div th:id="'rating-' + ${iterStat.index}" th:data-rating="${review.rating}" style="display: flex; float: inline-end;
+    justify-content: center;">
+							<span class="star" data-value="1"><i class="fa-regular fa-star"></i></span>
+							<span class="star" data-value="2"><i class="fa-regular fa-star"></i></span>
+							<span class="star" data-value="3"><i class="fa-regular fa-star"></i></span>
+							<span class="star" data-value="4"><i class="fa-regular fa-star"></i></span>
+							<span class="star" data-value="5"><i class="fa-regular fa-star"></i></span>
+							<input type="hidden" name="rating" th:value="${review.rating}">
+						</div>
+					</div>
+				</td>
+			</tr>
+			<tr th:class="${review.hidden && !#authorization.expression('hasRole(''ADMIN'')') ? 'hidden-review' : ''}">
+				<td>
+					<div style="display: flex; align-items: baseline;">
+						[[${review.titleName}]]
+					</div>
+				</td>
+			</tr>
+			<tr th:class="${review.hidden && !#authorization.expression('hasRole(''ADMIN'')') ? 'hidden-review' : ''}">
+				<td>
+					<div class="review">
+						<p th:id="'review-text-' + ${iterStat.index}">
+							[[${review.text}]]
+						</p>
+						<button th:onclick="'expandReview(' + ${iterStat.index} + ')'"
+							th:id="'read-more-btn-' + ${iterStat.index}"
+							style="float: inline-end; width: 50px; font-size: 12px; display: none;">더보기</button>
+						<button th:onclick="'collapseReview(' + ${iterStat.index} + ')'"
+							th:id="'collapse-btn-' + ${iterStat.index}"
+							style="float: inline-end; width: 50px; font-size: 12px; display: none;">닫기</button>
+					</div>
+				</td>
+
+
+			</tr>
+
+			<tr th:class="${review.hidden && !#authorization.expression('hasRole(''ADMIN'')') ? 'hidden-review' : ''}">
+				<td>
+					<div>
+						<div style="float: inline-start;">
+							<i class="fa-solid fa-user" style="font-size: 12px;"></i>
+							<span th:text="${review.orderInfo.order.member.name.charAt(0)}"></span>
+							<span th:if="${review.orderInfo.order.member.name.length() > 1}"
+								th:text="${'*'.repeat(review.orderInfo.order.member.name.length() - 1)}"></span>
+						</div>
+						<div style="float: inline-end;">
+							<i class="fa-solid fa-clock" style="font-size: 12px;"></i>
+							<span th:text="${#temporals.format(review.createdDate, 'yyyy년 MM월 dd일 a hh시 mm분')}"></span>
+						</div>
+					</div>
+
+
+				</td>
+			</tr>
+
+
+			<tr>
+				<!-- 관리자 권한이 있는 경우에만 보이는 버튼 -->
+				<td th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+					<form th:action="@{/admin/toggle-review-hidden-status(reviewId=${review.id})}" method="post">
+						<button type="submit" th:text="${review.hidden ? '보이기' : '숨기기'}"></button>
+					</form>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="pagination">
+		<ul>
+			<!-- 이전 페이지 그룹 링크 -->
+			<li th:if="${startPage > 0}">
+				<button type="button" th:attr="onclick=|location.href='@{/reviews(page=${startPage - 1})}'|">
+					<i class="fa-solid fa-backward" style="font-size: 19px;"></i>
+				</button>
+			</li>
+
+			<!-- 페이지 번호 링크 -->
+			<li th:each="pageNum : ${#numbers.sequence(startPage, endPage)}">
+				<button type="button" th:class="${pageNum == currentPage ? 'active' : ''}"
+					th:attr="onclick=|location.href='@{/reviews(page=${pageNum})}'|">
+					<span th:text="${pageNum + 1}"></span>
+				</button>
+			</li>
+
+			<!-- 다음 페이지 그룹 링크 -->
+			<li th:if="${endPage + 1 < totalPages}">
+				<button type="button" th:attr="onclick=|location.href='@{/reviews(page=${endPage + 1})}'|">
+					<i class="fa-solid fa-forward" style="font-size: 19px;"></i>
+				</button>
+			</li>
+		</ul>
+	</div>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+
+
+
+
+
+
+
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			var reviews = document.querySelectorAll('.review');
+
+			reviews.forEach(function (review, index) {
+				var reviewText = review.querySelector('p');
+				var readMoreBtn = review.querySelector('button');
+
+				if (reviewText.scrollHeight > 16) {
+					reviewText.style.maxHeight = "16px";
+					readMoreBtn.style.display = "block";
+				}
+			});
+		});
+
+
+		function expandReview(index) {
+			var reviewText = document.getElementById('review-text-' + index);
+			var readMoreBtn = document.getElementById('read-more-btn-' + index);
+			var collapseBtn = document.getElementById('collapse-btn-' + index);
+
+			reviewText.style.maxHeight = "none";
+			readMoreBtn.style.display = "none";
+			collapseBtn.style.display = "block";
+		}
+
+		function collapseReview(index) {
+			var reviewText = document.getElementById('review-text-' + index);
+			var readMoreBtn = document.getElementById('read-more-btn-' + index);
+			var collapseBtn = document.getElementById('collapse-btn-' + index);
+
+			reviewText.style.maxHeight = "16px";
+			readMoreBtn.style.display = "flex";
+			collapseBtn.style.display = "none";
+		}
+	</script>
+
+	<script>
+		// 별점 스크립트 수정
+		document.addEventListener('DOMContentLoaded', function () {
+			var ratingContainers = document.querySelectorAll('[id^="rating-"]');
+			ratingContainers.forEach(function (container) {
+				var currentRating = container.getAttribute('data-rating') || 0;
+				var stars = container.querySelectorAll('.star');
+
+				updateStars(stars, currentRating);
+			});
+
+			function updateStars(stars, rating) {
+				stars.forEach(function (star, index) {
+					star.querySelector('i').className = index < rating ? 'fa-solid fa-star' : 'fa-regular fa-star';
+				});
+			}
+		});
+
+	</script>
+	<script>
+		$(document).ready(function () {
+			$('.swiper-container').each(function (index) {
+				new Swiper(this, {
+					loop: true,
+					centeredSlides: true,
+					speed: 2000,
+					autoplay: {
+						delay: 0,
+						disableOnInteraction: false,
+					},
+					slidesPerView: 1,
+				});
+			});
+		});
+	</script>
+	<script>
+		function openModal(index) {
+			var modalId = "modal-" + index;
+			var modal = document.getElementById(modalId);
+			modal.style.display = "block";
+
+			var swiperId = 'swiper-' + index;
+			var swiper = new Swiper('#' + swiperId, {
+				loop: false,
+				centeredSlides: true,
+				slidesPerView: 1,
+				pagination: {
+					el: '#swiper-pagination-' + index,
+					clickable: true,
+				},
+				navigation: {
+					nextEl: '#swiper-button-next-' + index,
+					prevEl: '#swiper-button-prev-' + index,
+				},
+			});
+
+			var span = modal.getElementsByClassName("close")[0];
+			span.onclick = function () {
+				modal.style.display = "none";
+				swiper = new Swiper('#' + swiperId, {
+					loop: true,
+					centeredSlides: true,
+					speed: 2000,
+					autoplay: {
+						delay: 0,
+						disableOnInteraction: false,
+					},
+					slidesPerView: 1,
+				});
+			}
+		}
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,19 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>Insert title here</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+</head>
+
+
+<body>
+	<!-- header를 포함하는 부분 -->
+	<th:block th:replace="~{fragments/header}"></th:block>
+    <p>회원가입이 성공적으로 완료되었습니다. 이메일을 확인하여 계정을 활성화하세요.</p>
+    <div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+</body>
+</html>

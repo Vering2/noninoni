@@ -1,0 +1,416 @@
+<!-- Home.html -->
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<style>
+		.row {
+			display: flex;
+			flex-wrap: wrap;
+		}
+
+		.col {
+			flex: 0 0 48%;
+			/* 모바일 화면에서 기본적으로 한 줄에 하나 */
+			max-width: 48%;
+			/* 모바일 화면에서 기본적으로 한 줄에 하나 */
+			padding: 1%;
+		}
+
+		/* 데스크탑 화면에서 한 줄에 네 개가 나오게 하는 미디어 쿼리 */
+		@media (min-width: 768px) {
+			.col {
+				flex: 0 0 23%;
+				/* 데스크탑에서는 한 줄에 네 개 */
+				max-width: 23%;
+				/* 데스크탑에서는 한 줄에 네 개 */
+			}
+		}
+
+		.swiper-container {
+			width: 100%;
+			overflow: hidden;
+		}
+
+		.container .swiper-pagination-bullet {
+			background: rgb(192, 192, 192);
+			/* 페이지 버튼 색상 */
+		}
+
+		.container .swiper-pagination-bullet-active {
+			background: rgb(0, 0, 0);
+			/* 활성화된 페이지 버튼 색상 */
+		}
+
+		.container .swiper-button-prev,
+		.container .swiper-button-next {
+			color: #000;
+			/* 버튼 색상 */
+		}
+
+		.square-container {
+			width: 100%;
+			/* 가로 길이를 50%로 설정 */
+			height: 0;
+			/* 초기 높이는 0으로 설정 */
+			padding-top: 100%;
+			/* 가로 길이에 대한 세로 길이를 50%로 설정하여 정사각형 유지 */
+			position: relative;
+			/* 상대적 위치 지정 */
+		}
+
+		.content {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			/* 컨텐츠 내용 스타일링 */
+		}
+	</style>
+	<style>
+		.review p {
+			text-align: left;
+			float: inline-start;
+			overflow: hidden;
+			width: calc(100% - 50px);
+		}
+
+		.pagination button {
+			width: 30px;
+			/* 버튼의 가로 크기 설정 */
+			/* 추가적인 스타일링 (예: 정렬, 배경색, 테두리 등) */
+		}
+
+		.pagination ul {
+			list-style-type: none;
+			/* 리스트 항목 앞의 점을 제거 */
+			padding: 0;
+			/* 필요한 경우 패딩도 제거 */
+		}
+
+		.pagination li {
+			display: inline;
+			/* 리스트 항목을 가로로 나열 */
+			margin-right: 5px;
+			/* 각 항목 사이에 간격 추가 */
+		}
+
+		.pagination .active {
+			background-color: silver;
+			/* 배경색 */
+			color: white;
+			/* 텍스트 색상 */
+		}
+
+
+		/* 기타 스타일링 */
+	</style>
+
+	<style>
+		.addFavorite,
+		.removeFavorite {
+			background-color: unset;
+			border: 0;
+			color: black;
+		}
+	</style>
+
+</head>
+
+<body>
+	<!-- header를 포함하는 부분 -->
+	<th:block th:replace="~{fragments/header}"></th:block>
+
+
+	<th:block th:replace="~{fragments/rightscroll}"></th:block>
+
+	<div th:each="categoryEntry : ${categoryProductsMap}">
+		<h3 th:text="${#strings.replace(categoryEntry.key, '_', ' ')}">Category Type</h3>
+		<div th:id="'category-' + ${categoryEntry.key}" class="container" style="width: 100%;">
+			<div class="row" style="align-items: baseline;">
+				<div th:each="product, iterStat : ${categoryEntry.value.content}" class="col">
+					<table style="border: 0;">
+						<tr>
+							<!-- ... 제품 정보 ... -->
+							<div class="swiper-container" th:id="'swiper-' + ${iterStat.index}">
+								<div class="swiper-wrapper">
+									<!-- 슬라이드 항목 -->
+									<div th:each="url : ${#strings.arraySplit(product.mainimageUrl, ',')}"
+										class="swiper-slide">
+										<div class="square-container">
+											<a th:href="@{'/product/' + ${product.id}}">
+												<div class="content">
+													<picture>
+														<img th:src="@{/uploaded_files/product/{url}(url=${url})}"
+															alt="Slide Image" decoding="async" loading="lazy">
+													</picture>
+												</div>
+											</a>
+
+										</div>
+									</div>
+								</div>
+							</div>
+						</tr>
+						<tr>
+							<td style="text-align: left;">
+								<a th:href="@{'/product/' + ${product.id}}">
+									<div>
+										<span th:text="${product.name}">제품명</span>
+									</div>
+									<div>
+										<span
+											th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')}">가격</span><span>원</span>
+									</div>
+								</a>
+							</td>
+							<td th:if="${isLoggedIn}" style="text-align: right;">
+								<!-- 로그인 했을 때만 보이는 부분 -->
+								<button th:id="${'addFavorite-' + product.id}" class="addFavorite"
+									th:style="${favoriteProductIds.contains(product.id) ? 'display: none;' : 'display: block;'}">
+									<i class="fa-regular fa-heart" style="font-size: 21px;"></i>
+								</button>
+
+								<button th:id="${'removeFavorite-' + product.id}" class="removeFavorite"
+									th:style="${favoriteProductIds.contains(product.id) ? 'display: block;' : 'display: none;'}">
+									<i class="fa-solid fa-heart" style="font-size: 21px;"></i>
+								</button>
+							</td>
+						</tr>
+					</table>
+
+				</div>
+
+			</div>
+		</div>
+
+		<!-- 페이징 컨트롤 -->
+		<div class="pagination" th:id="'pagination-' + ${categoryEntry.key}">
+			<ul>
+				<!-- 페이지 그룹화에 따른 페이지 번호 생성 -->
+				<li
+					th:each="pageNum : ${#numbers.sequence(0, T(java.lang.Math).min((categoryEntry.value.totalPages - 1), 2))}">
+
+					<button th:data-category="${categoryEntry.key}" th:data-page="${pageNum}"
+						onclick="loadCategoryProducts(this.getAttribute('data-category'), this.getAttribute('data-page'))"
+						th:classappend="${pageNum == categoryEntry.value.number} ? 'active' : ''">
+						<span th:text="${pageNum + 1}"></span>
+					</button>
+				</li>
+			</ul>
+		</div>
+
+
+
+	</div>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+
+	<script th:inline="javascript">
+		function loadCategoryProducts(categoryType, pageNum) {
+			var isLoggedIn = [[${isLoggedIn}]];
+			$.ajax({
+				url: '/categoryProducts',
+				type: 'GET',
+				data: {
+					categoryType: categoryType,
+					page: pageNum
+				},
+				success: function (data) {
+					var favoriteProductIds = data.favoriteProductIds || [];
+					var htmlContent = '<div class="row" style="align-items: baseline;">';
+
+					data.products.forEach(function (product) {
+						// 각 상품에 대한 HTML 콘텐츠를 생성합니다.
+						htmlContent += '<div class="col">';
+						htmlContent += '<table style="border: 0;">';
+						htmlContent += '<tr>';
+						// 이미지 슬라이더
+						htmlContent += '<div class="swiper-container" id="swiper-' + product.id + '">';
+						htmlContent += '<div class="swiper-wrapper">';
+						if (product.mainimageUrl) {
+							product.mainimageUrl.split(',').forEach(function (url) {
+								htmlContent += '<div class="swiper-slide">';
+								htmlContent += '<div class="square-container">';
+								htmlContent += '<a href="/product/' + product.id + '">';
+								htmlContent += '<div class="content"><picture>';
+								htmlContent += '<img src="/uploaded_files/product/' + url + '" alt="Slide Image" decoding="async" loading="lazy">';
+								htmlContent += '</picture></div>';
+								htmlContent += '</a>';
+								htmlContent += '</div>';
+								htmlContent += '</div>';
+							});
+						}
+						htmlContent += '</div>';
+						htmlContent += '</div>';
+						// 상품 이름 및 가격
+						htmlContent += '<tr>';
+						htmlContent += '<td style="text-align: left;">';
+						htmlContent += '<a href="/product/' + product.id + '">';
+						htmlContent += '<div><span>' + product.name + '</span></div>';
+						htmlContent += '<div><span>' + product.price.toLocaleString() + '원</span></div>';
+						htmlContent += '</a>';
+						htmlContent += '</td>';
+						// 즐겨찾기 버튼 HTML 생성
+						if (isLoggedIn) {
+							htmlContent += '<td style="text-align: right;">';
+							if (favoriteProductIds.includes(product.id)) {
+								// 즐겨찾기가 되어있으면 '즐겨찾기 제거' 버튼만 표시
+								htmlContent += '<button id="removeFavorite-' + product.id + '" class="removeFavorite" style="display: block;"><i class="fa-solid fa-heart" style="font-size: 21px;"></i></button>';
+								htmlContent += '<button id="addFavorite-' + product.id + '" class="addFavorite" style="display: none;"><i class="fa-regular fa-heart" style="font-size: 21px;"></i></button>';
+							} else {
+								// 즐겨찾기가 안 되어있으면 '즐겨찾기 추가' 버튼만 표시
+								htmlContent += '<button id="addFavorite-' + product.id + '" class="addFavorite" style="display: block;"><i class="fa-regular fa-heart" style="font-size: 21px;"></i></button>';
+								htmlContent += '<button id="removeFavorite-' + product.id + '" class="removeFavorite" style="display: none;"><i class="fa-solid fa-heart" style="font-size: 21px;"></i></button>';
+							}
+							htmlContent += '</td>';
+						}
+
+
+
+						htmlContent += '</tr>';
+						htmlContent += '</table>';
+						htmlContent += '</div>';
+					});
+
+					htmlContent += '</div>';
+					$('#category-' + categoryType).html(htmlContent);
+					var paginationHtml = '<div><ul>';
+
+					// 그룹 페이지네이션 구현
+					var startPage = data.paginationGroupInfo.startPage;
+					var endPage = data.paginationGroupInfo.endPage;
+					var currentPage = data.paginationInfo.currentPage;
+
+					for (var i = startPage; i <= endPage; i++) {
+						var isActive = i === (currentPage);
+						var activeClass = isActive ? 'active' : '';
+						paginationHtml += '<li>';
+						paginationHtml += '<button class="' + activeClass + '" onclick="loadCategoryProducts(\'' + categoryType + '\', ' + i + ')">';
+						paginationHtml += '<span>' + (i + 1) + '</span>';
+						paginationHtml += '</button>';
+						paginationHtml += '</li>';
+					}
+					paginationHtml += '</ul></div>';
+
+					$('#pagination-' + categoryType).html(paginationHtml);
+					// 새롭게 추가된 슬라이더에 대한 초기화
+					$('#category-' + categoryType + ' .swiper-container').each(function () {
+						new Swiper(this, {
+							loop: true,
+							centeredSlides: true,
+							speed: 2000,
+							autoplay: {
+								delay: 0,
+								disableOnInteraction: false,
+							},
+							slidesPerView: 1,
+						});
+					});
+				},
+				error: function (xhr, status, error) {
+					console.error("상품 목록 로딩 실패: ", status, error);
+				}
+			});
+		}
+	</script>
+
+
+	<script>
+		// 즐겨찾기 추가 버튼에 대한 이벤트 핸들러
+		$(document).on('click', '.addFavorite', function () {
+			var productId = $(this).attr('id').split('-')[1];
+			var addButton = $(this);
+			var removeButton = $('#removeFavorite-' + productId);
+
+			// 즐겨찾기 추가 AJAX 요청
+			$.ajax({
+				url: '/api/favorites/add',
+				type: 'POST',
+				data: {
+					memberId: '[[${memberId}]]', // memberId 적절히 설정
+					productId: productId
+				},
+				success: function (response) {
+					addButton.hide();
+					removeButton.show();
+				},
+				error: function (xhr, status, error) {
+					console.error("즐겨찾기 추가 오류: ", error);
+				}
+			});
+		});
+
+
+		// 즐겨찾기 제거 버튼에 대한 이벤트 핸들러
+		$(document).on('click', '.removeFavorite', function () {
+			var productId = $(this).attr('id').split('-')[1];
+			var removeButton = $(this);
+			var addButton = $('#addFavorite-' + productId);
+
+			// 즐겨찾기 제거 AJAX 요청
+			$.ajax({
+				url: '/api/favorites/remove',
+				type: 'POST',
+				data: {
+					memberId: '[[${memberId}]]', // memberId 적절히 설정
+					productId: productId
+				},
+				success: function (response) {
+					removeButton.hide();
+					addButton.show();
+				},
+				error: function (xhr, status, error) {
+					console.error("즐겨찾기 제거 오류: ", error);
+				}
+			});
+		});
+
+	</script>
+
+
+
+	<script>
+		$(document).ready(function () {
+			$('.swiper-container').each(function (index) {
+				new Swiper(this, {
+					loop: true,
+					centeredSlides: true,
+					speed: 2000,
+					autoplay: {
+						delay: 0,
+						disableOnInteraction: false,
+					},
+					slidesPerView: 1,
+				});
+			});
+		});
+	</script>
+
+	<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.5.0/kakao.min.js"
+		integrity="sha384-kYPsUbBPlktXsY6/oNHSUDZoTX6+YI51f63jCPEIPFP09ttByAdxd2mEjKuhdqn4"
+		crossorigin="anonymous"></script>
+	<script>
+		Kakao.init('4d10a47826264c87c9b956e8f254e511'); // 사용하려는 앱의 JavaScript 키 입력
+	</script>
+
+	<script>
+		function chatChannel() {
+			Kakao.Channel.chat({
+				channelPublicId: 'noninoni',
+			});
+		}
+
+
+	</script>
+
+
+
+</body>
+
+</html>

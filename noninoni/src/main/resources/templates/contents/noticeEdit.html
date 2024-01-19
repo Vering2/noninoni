@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+
+<body>
+	<!-- header를 포함하는 부분 -->
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<h2>공지사항 수정</h2>
+
+	<!-- 공지사항 수정 폼 -->
+	<form th:action="@{/notices/{id}/edit(id=${notice.id})}" th:object="${notice}" method="post">
+
+		<input type="hidden" name="_method" value="put" /> <!-- PUT 메서드 오버라이드 -->
+		<div>
+			<label for="title">제목</label>
+			<input type="text" id="title" name="title" th:value="${notice.title}" required>
+		</div>
+		<div>
+			<label for="content">내용</label>
+			<textarea id="content" name="content" required th:text="${notice.content}"></textarea>
+		</div>
+		<button type="submit">수정 완료</button>
+	</form>
+
+	<!-- 공지사항 목록으로 돌아가기 버튼 -->
+	<button onclick="window.location.href='/notices'">공지사항 목록으로 돌아가기</button>
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+</body>
+
+</html>

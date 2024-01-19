@@ -1,0 +1,117 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>노니노니 아기옷 감성공간</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<style>
+		.pagination button {
+			width: 30px;
+			/* 버튼의 가로 크기 설정 */
+			/* 추가적인 스타일링 (예: 정렬, 배경색, 테두리 등) */
+		}
+
+		.pagination ul {
+			list-style-type: none;
+			/* 리스트 항목 앞의 점을 제거 */
+			padding: 0;
+			/* 필요한 경우 패딩도 제거 */
+		}
+
+		.pagination li {
+			display: inline;
+			/* 리스트 항목을 가로로 나열 */
+			margin-right: 5px;
+			/* 각 항목 사이에 간격 추가 */
+		}
+
+		.pagination .active {
+			background-color: silver;
+			/* 배경색 */
+			color: white;
+			/* 텍스트 색상 */
+		}
+	</style>
+
+</head>
+
+<body>
+	<!-- header를 포함하는 부분 -->
+	<th:block th:replace="~{fragments/header}"></th:block>
+	<h2>공지사항</h2>
+
+
+	<!-- 공지사항 목록 -->
+	<table>
+		<thead>
+			<tr>
+				<th>제목</th>
+				<th>작성일</th>
+			</tr>
+		</thead>
+		<tbody>
+			<!-- 상단 고정 공지사항 먼저 표시 -->
+			<!-- 상단 고정된 공지사항 표시 -->
+			<div th:each="notice : ${pinnedNotices}">
+				<tr>
+					<td><a th:href="@{/notices/{id}(id=${notice.id})}" th:text="${notice.title}"
+							style="color: red;">공지사항 제목</a></td>
+					<td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd')}">작성일</td>
+				</tr>
+			</div>
+			<!-- 페이징 처리된 일반 공지사항 표시 -->
+			<div th:each="notice : ${noticePage.content}">
+				<!-- 그 외의 공지사항 표시 -->
+				<tr th:unless="${notice.pinned}">
+					<td style="border-top: 1px solid #ccc;"><a th:href="@{/notices/{id}(id=${notice.id})}"
+							th:text="${notice.title}">공지사항 제목</a></td>
+					<td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd')}"
+						style="border-top: 1px solid #ccc;">작성일</td>
+				</tr>
+			</div>
+		</tbody>
+	</table>
+	<!-- 관리자일 경우에만 보이는 공지사항 추가 버튼 -->
+	<table>
+		<td>
+			<div th:if="${isAdmin}">
+				<!-- 공지사항 추가 버튼 -->
+				<button onclick="window.location.href='/notices/create'">공지사항 추가</button>
+			</div>
+		</td>
+	</table>
+	<!-- 페이징 네비게이션 바 -->
+	<nav>
+		<ul class="pagination">
+			<!-- 이전 페이지 그룹 링크 -->
+			<li th:if="${startPage > 0}">
+				<button type="button" th:attr="onclick=|location.href='@{/notices(page=${startPage - 1})}'|">
+					<i class="fa-solid fa-backward" style="font-size: 19px;"></i>
+				</button>
+			</li>
+
+			<!-- 페이지 번호 링크 -->
+			<li th:each="pageNum : ${#numbers.sequence(startPage, endPage)}">
+				<button type="button" th:class="${pageNum == currentPage ? 'active' : ''}"
+					th:attr="onclick=|location.href='@{/notices(page=${pageNum})}'|">
+					<span th:text="${pageNum + 1}"></span>
+				</button>
+			</li>
+
+			<!-- 다음 페이지 그룹 링크 -->
+			<li th:if="${endPage + 1 < totalPages}">
+				<button type="button" th:attr="onclick=|location.href='@{/notices(page=${endPage + 1})}'|">
+					<i class="fa-solid fa-forward" style="font-size: 19px;"></i>
+				</button>
+			</li>
+		</ul>
+	</nav>
+
+
+
+	<div style="bottom: 0;">
+		<th:block th:replace="~{fragments/footer}"></th:block>
+	</div>
+</body>
+
+</html>
